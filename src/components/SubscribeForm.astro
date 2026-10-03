@@ -1,0 +1,11 @@
+---
+import { env } from '../data/defaults';
+interface Props { id: string; button?: string }
+const { id, button = 'Subscribe' } = Astro.props;
+---
+<form class="free-form kit-form" id={id} action={env.kitAction || undefined} method="post" novalidate data-kit={env.kitAction}>
+  <label for={`${id}-email`} class="sr-only">Email address</label>
+  <input id={`${id}-email`} name="email_address" type="email" placeholder="you@example.com" autocomplete="email">
+  <button class="btn btn-ink" type="submit">{button}</button>
+  <p class="form-msg" aria-live="polite"></p>
+</form>

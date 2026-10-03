@@ -1,0 +1,19 @@
+---
+import { topics, env } from '../data/defaults';
+---
+<section id="share-teaser" aria-labelledby="sh-title">
+  <div class="wrap share-grid">
+    <div>
+      <h2 class="sec-title" id="sh-title">Share your thoughts with John</h2>
+      <p class="lede">Ask a question, tell us about your own experience, or send a prayer request. Choose a topic to get started.</p>
+      <ul class="topics">
+        {topics.map((t) => <li><a href={`/share/?topic=${t.key}`}><strong>{t.name}</strong><span>{t.sub}</span><em>Start</em></a></li>)}
+      </ul>
+    </div>
+    <aside class="panel timeline-panel" aria-label="Donate">
+      <h3>Support this message</h3>
+      <p>Your gift keeps the Seven Spirits message online, the podcast recording, and new evidence reaching more people.</p>
+      <a class="btn btn-gold" href={env.donate}>Donate</a>
+    </aside>
+  </div>
+</section>

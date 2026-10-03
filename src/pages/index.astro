@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Testimony from '../components/Testimony.astro';
+import Spirits from '../components/Spirits.astro';
+import Evidence from '../components/Evidence.astro';
+import Latest from '../components/Latest.astro';
+import Join from '../components/Join.astro';
+import Store from '../components/Store.astro';
+import Podcast from '../components/Podcast.astro';
+import Radio from '../components/Radio.astro';
+import ShareTeaser from '../components/ShareTeaser.astro';
+import { getSettings, getCategories, getPosts } from '../lib/wp';
+
+const [settings, cats, posts] = await Promise.all([getSettings(), getCategories(), getPosts()]);
+const eye = cats.find((c) => c.slug === 'eyewitness-afterlife');
+---
+<Base>
+  <Hero settings={settings} />
+  <Testimony />
+  <Spirits settings={settings} eyewitnessPath={eye?.path || '/'} />
+  <Evidence cats={cats} />
+  <Latest posts={posts} settings={settings} />
+  <Join />
+  <Store />
+  <Podcast logo={settings.logo} />
+  <Radio stations={settings.stations} />
+  <ShareTeaser />
+</Base>

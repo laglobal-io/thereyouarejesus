@@ -1,0 +1,89 @@
+---
+// Every WordPress post and page, at the same web address it has today.
+import Base from '../layouts/Base.astro';
+import { getPosts, getPages, stripTags, type Post, type Page } from '../lib/wp';
+
+export async function getStaticPaths() {
+  const [posts, pages] = await Promise.all([getPosts(), getPages()]);
+  const skip = new Set(['share-your-thoughts', 'share', 'home', '']);
+  const trim = (p: string) => p.replace(/^\/|\/$/g, '');
+  const postPaths = posts.map((post, i) => ({
+    params: { path: trim(post.path) },
+    props: { kind: 'post' as const, post, newer: posts[i - 1] || null, older: posts[i + 1] || null,
+      related: posts.filter((q) => q.id !== post.id && post.primary && q.catSlugs.includes(post.primary.slug)).slice(0, 3) },
+  }));
+  const pagePaths = pages.filter((p) => !skip.has(trim(p.path))).map((page) => ({
+    params: { path: trim(page.path) }, props: { kind: 'page' as const, page },
+  }));
+  return [...postPaths, ...pagePaths].filter((x) => x.params.path);
+}
+
+type Props =
+  | { kind: 'post'; post: Post; newer: Post | null; older: Post | null; related: Post[] }
+  | { kind: 'page'; page: Page };
+const props = Astro.props as Props;
+const url = new URL(Astro.url.pathname, Astro.site).toString();
+const post = props.kind === 'post' ? props.post : null;
+const newer = props.kind === 'post' ? props.newer : null;
+const older = props.kind === 'post' ? props.older : null;
+const related = props.kind === 'post' ? props.related : [];
+const page = props.kind === 'page' ? props.page : null;
+const t = encodeURIComponent(post?.title || ''), u = encodeURIComponent(url);
+---
+{post && (
+    <Base title={`${post.title} | There You Are Jesus!`} description={post.excerpt.slice(0, 160)} image={post.image?.url} type="article">
+      <article id="post-page">
+        <header class="post-hero">
+          <div class="wrap"><div class="inner">
+            <div class="crumbs"><a href="/">Home</a>{post.primary && <> / <a href={post.primary.path}>{post.primary.name}</a></>}</div>
+            <h1>{post.title}</h1>
+            <div class="byline"><span class="av" aria-hidden="true">J</span><span><b>John Levay</b><br><span>{post.dateLabel}, {post.readMinutes} min read</span></span></div>
+          </div></div>
+        </header>
+        <div class="wrap post-body">
+          {post.image && <figure class="featured"><img src={post.image.url} alt={post.image.alt} loading="eager" decoding="async" /></figure>}
+          <div class="prose" set:html={post.content} />
+          <div class="share-row">
+            <span>Share this post</span>
+            <button type="button" data-copy={url}>Copy link</button>
+            <a href={`https://www.facebook.com/sharer/sharer.php?u=${u}`} target="_blank" rel="noopener">Facebook</a>
+            <a href={`https://x.com/intent/post?text=${t}&url=${u}`} target="_blank" rel="noopener">X</a>
+            <a href={`mailto:?subject=${t}&body=${u}`}>Email</a>
+            <span class="copied" aria-live="polite" style="font-weight:400;color:var(--muted);font-size:.9rem"></span>
+          </div>
+          <div class="respond">
+            <div class="panel">
+              <h3>What did this post mean to you?</h3>
+              <p>Share your thoughts or your own experience with John.</p>
+              <a class="btn btn-ink" href={`/share/?topic=feedback&post=${encodeURIComponent(post.title)}`}>Respond to this post</a>
+            </div>
+            <div class="panel timeline-panel">
+              <h3>Get every new post by email</h3>
+              <p>Free. Unsubscribe anytime.</p>
+              <a class="btn btn-gold" href="/#join">Subscribe</a>
+            </div>
+          </div>
+          <nav class="pn" aria-label="More posts">
+            {newer ? <a class="prev" href={newer.path}><small>Newer post</small><strong>{newer.title}</strong></a> : <span></span>}
+            {older && <a class="next" href={older.path}><small>Older post</small><strong>{older.title}</strong></a>}
+          </nav>
+        </div>
+        {related.length > 0 && post.primary && (
+          <section class="related" aria-labelledby="rel-title">
+            <div class="wrap" style="max-width:760px">
+              <h2 class="sec-title" id="rel-title">More in {post.primary.name}</h2>
+              <ul class="posts">
+                {related.map((q) => <li><a href={q.path}><div class="meta"><b>{q.primary?.name}</b>, {q.dateLabel}</div><h3>{q.title}</h3></a></li>)}
+              </ul>
+            </div>
+          </section>
+        )}
+      </article>
+    </Base>
+)}
+{page && (
+  <Base title={`${page.title} | There You Are Jesus!`} description={(page.excerpt || stripTags(page.content)).slice(0, 160)}>
+    <header class="page-hero"><div class="wrap"><a href="/">Home</a><h1>{page.title}</h1></div></header>
+    <div class="wrap post-body"><div class="prose" set:html={page.content} /></div>
+  </Base>
+)}

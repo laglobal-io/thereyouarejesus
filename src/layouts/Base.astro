@@ -1,0 +1,86 @@
+---
+import '../styles/global.css';
+import { getSettings } from '../lib/wp';
+import { socials, env } from '../data/defaults';
+
+interface Props { title?: string; description?: string; image?: string; type?: string }
+const {
+  title = 'There You Are Jesus! | Modern Day Evidence of Interactions with God',
+  description = "John Levay's eyewitness account of the Seven Spirits of God, and modern day evidence of personal interactions with God through nature, numbers and everyday things.",
+  image, type = 'website',
+} = Astro.props;
+const settings = await getSettings();
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const year = new Date().getFullYear();
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  <link rel="icon" href={settings.logo || '/favicon.svg'}>
+  <link rel="alternate" type="application/rss+xml" title="There You Are Jesus!" href="/feed.xml">
+  <meta property="og:type" content={type}>
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonical}>
+  {image && <meta property="og:image" content={image}>}
+  <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'}>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital@0;1&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body id="top" class={settings.logo ? 'has-logo' : ''}>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-head">
+    <div class="wrap head-row">
+      <a class="brand" href="/">
+        {settings.logo && <span class="logo-mark" style={`background-image:url('${settings.logo}')`} aria-hidden="true"></span>}
+        <span>There You Are Jesus<span style="color:var(--gold)">!</span></span>
+      </a>
+      <button class="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/#testimony">John's account</a>
+        <a href="/#evidence">Evidence</a>
+        <a href="/#listen">Podcast</a>
+        <a href="/#radio">Radio</a>
+        <a href="/share/">Share</a>
+        <a href="/#store">Store</a>
+        <a href="/#join">Join</a>
+        <a class="give" href={env.donate}>Donate</a>
+      </nav>
+    </div>
+    <div class="read-progress" id="read-progress" aria-hidden="true"></div>
+  </header>
+
+  <main id="main">
+    <slot />
+  </main>
+
+  <footer class="site-foot">
+    <div class="wrap">
+      <div class="foot-row">
+        <div>
+          {settings.logo && <span class="logo-mark foot-logo" style={`background-image:url('${settings.logo}')`} aria-hidden="true"></span>}
+          <p class="foot-brand">There You Are Jesus!</p>
+          <p style="margin:0">Modern day evidence of two-way communication with God.</p>
+          <p style="margin:6px 0 0"><a href="/contact/" style="color:#D4DAF2">Contact</a>, or email <a href="mailto:john@thereyouarejesus.com" style="color:#D4DAF2">john@thereyouarejesus.com</a></p>
+        </div>
+        <ul class="socials" aria-label="Social media">
+          {socials.map((s) => <li><a href={s.url}>{s.name}</a></li>)}
+          <li><a href="/feed.xml">RSS</a></li>
+        </ul>
+      </div>
+      <div class="copy">© {year} There You Are Jesus LLC. All rights reserved. Made from God's love.</div>
+    </div>
+  </footer>
+
+  <script>
+    import '../scripts/site.ts';
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCategories, getPosts, type Category, type Post } from '../../lib/wp';
+
+export async function getStaticPaths() {
+  const [cats, posts] = await Promise.all([getCategories(), getPosts()]);
+  return cats
+    .filter((c) => c.path.startsWith('/category/'))
+    .map((c) => ({
+      params: { path: c.path.replace(/^\/category\/|\/$/g, '') },
+      props: { cat: c, posts: posts.filter((p) => p.catSlugs.includes(c.slug)), children: cats.filter((x) => x.parent === c.id && x.count > 0) },
+    }));
+}
+interface Props { cat: Category; posts: Post[]; children: Category[] }
+const { cat, posts, children } = Astro.props;
+---
+<Base title={`${cat.name} | There You Are Jesus!`} description={cat.description || `Posts in ${cat.name} on ThereYouAreJesus.`} image={cat.image || undefined}>
+  <header class="page-hero">
+    <div class="wrap">
+      <a href="/#evidence">Evidence</a>
+      <h1>{cat.name}</h1>
+      {cat.description && <p>{cat.description}</p>}
+    </div>
+  </header>
+  <div class="wrap post-body" style="max-width:860px">
+    {children.length > 0 && (
+      <div class="filters" style="margin-top:0">
+        {children.map((c) => <a class="chip" href={c.path} style="text-decoration:none">{c.name}</a>)}
+      </div>
+    )}
+    <ul class="posts">
+      {posts.length
+        ? posts.map((p) => <li><a href={p.path}><div class="meta"><b>{p.primary?.name}</b>, {p.dateLabel}</div><h3>{p.title}</h3>{p.excerpt && <p style="margin:6px 0 0;color:var(--muted);font-size:.98rem">{p.excerpt}</p>}</a></li>)
+        : <li class="empty">No posts here yet. New evidence is added regularly.</li>}
+    </ul>
+  </div>
+</Base>

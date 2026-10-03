@@ -1,0 +1,50 @@
+---
+import { getEpisodes, FEED, type Episode } from '../lib/podcast';
+interface Props { logo: string }
+const { logo } = Astro.props;
+// Episodes are baked in at build time, then refreshed in the browser from /api/podcast so new ones appear without a rebuild.
+let episodes: Episode[] = [];
+try { episodes = await getEpisodes(); } catch (e) { console.warn('[tyaj] Podcast feed unavailable at build:', (e as Error).message); }
+const json = JSON.stringify(episodes).replace(/</g, '\\u003c');
+---
+<section class="podcast" id="listen" aria-labelledby="pod-title">
+  <div class="wrap pod-grid">
+    <div>
+      <h2 class="sec-title" id="pod-title">Listen to the podcast</h2>
+      <p class="lede">John tells the full story and shares new evidence as it happens, with episodes every other week.</p>
+      <div class="show">
+        <div class="show-art" style={logo ? `background-image:url('${logo}')` : ''} aria-hidden="true">
+          {[40, 52, 64, 76, 64, 52, 40].map((h) => <i style={`height:${h}%`}></i>)}
+        </div>
+        <div><strong>There You Are Jesus: The Modern Day Evidence</strong><span id="ep-count"></span></div>
+      </div>
+      <div class="listen-on">
+        <a class="btn btn-ghost" href="https://www.iheart.com/podcast/338-there-you-are-jesus-the-mo-126842793/">Listen on iHeart</a>
+        <a class="btn btn-ghost" href={FEED}>RSS feed</a>
+      </div>
+    </div>
+    <div class="player" aria-label="Podcast player">
+      <p class="np-label">Now playing</p>
+      <h3 class="np-title" id="np-title">Loading episodes…</h3>
+      <p class="np-meta" id="np-meta"></p>
+      <p class="np-desc" id="np-desc"></p>
+      <div class="controls">
+        <button class="play" id="play" type="button" aria-label="Play">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path id="play-icon" d="M7 4l13 8-13 8z" fill="currentColor"/></svg>
+        </button>
+        <button class="skip-btn" type="button" id="back15">Back 15s</button>
+        <button class="skip-btn" type="button" id="fwd30">Forward 30s</button>
+        <button class="skip-btn" type="button" id="speed" aria-label="Playback speed">1x</button>
+        <div class="scrub">
+          <span id="t-cur">0:00</span>
+          <input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Seek">
+          <span id="t-dur">0:00</span>
+        </div>
+      </div>
+      <p class="pod-status" id="pod-status" aria-live="polite"></p>
+      <audio id="audio" preload="none"></audio>
+      <ul class="eps" id="eps" aria-label="Episodes"></ul>
+    </div>
+  </div>
+  <script type="application/json" id="podcast-data" set:html={json}></script>
+</section>

@@ -1,0 +1,11 @@
+{
+  "redirects": [
+    { "source": "/share-your-thoughts", "destination": "/share/", "permanent": true },
+    { "source": "/share-your-thoughts/", "destination": "/share/", "permanent": true },
+    { "source": "/feed", "destination": "/feed.xml", "permanent": true },
+    { "source": "/feed/", "destination": "/feed.xml", "permanent": true },
+    { "source": "/wp-admin/:path*", "destination": "https://cms.thereyouarejesus.com/wp-admin/:path*", "permanent": false },
+    { "source": "/wp-login.php", "destination": "https://cms.thereyouarejesus.com/wp-login.php", "permanent": false },
+    { "source": "/wp-content/:path*", "destination": "https://cms.thereyouarejesus.com/wp-content/:path*", "permanent": true }
+  ]
+}

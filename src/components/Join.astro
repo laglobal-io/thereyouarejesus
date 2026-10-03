@@ -1,0 +1,34 @@
+---
+import SubscribeForm from './SubscribeForm.astro';
+import { env } from '../data/defaults';
+---
+<section class="join" id="join" aria-labelledby="j-title">
+  <div class="wrap">
+    <h2 class="sec-title" id="j-title">Stay close to the message</h2>
+    <p class="lede">Everything on this site stays free. Subscribe to get every new post by email, or become a member for more from John and to help this message reach further.</p>
+    <div class="tiers">
+      <div class="tier">
+        <h3>Subscriber</h3>
+        <p class="price"><b>Free</b></p>
+        <p class="for">For anyone who wants to follow along.</p>
+        <ul><li>Every new post delivered by email</li><li>Timeline updates as they happen</li><li>New podcast episodes</li></ul>
+        <SubscribeForm id="join-form" />
+      </div>
+      <div class="tier">
+        <h3>Passion</h3>
+        <p class="price"><b>$5</b> a month</p>
+        <p class="for">For readers who want to go deeper.</p>
+        <ul><li>Everything in Subscriber</li><li>A monthly letter from John</li><li>Early access to each new book in the Biblical Trail of Sevens</li><li>Members-only audio reflections</li></ul>
+        <a class="btn btn-ink" href={env.passion || '#join'} data-pending={env.passion ? undefined : 'Memberships open soon.'}>Become a Passion member</a>
+      </div>
+      <div class="tier devout">
+        <h3>Devout</h3>
+        <p class="price"><b>$15</b> a month</p>
+        <p class="for">For those who want to carry this message with us.</p>
+        <ul><li>Everything in Passion</li><li>A downloadable study guide each quarter</li><li>Quarterly live Q&amp;A with John</li><li>15% off everything in the store</li></ul>
+        <a class="btn btn-gold" href={env.devout || '#join'} data-pending={env.devout ? undefined : 'Memberships open soon.'}>Become a Devout member</a>
+      </div>
+    </div>
+    <p class="join-note" id="join-note">Members can change or cancel their plan at any time from their account.</p>
+  </div>
+</section>
