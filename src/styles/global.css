@@ -238,6 +238,16 @@ section{padding:clamp(64px,9vw,112px) 0}
 .btn-line:hover{border-color:var(--ink)}
 .spirit-caption .hint a{color:var(--gold);text-underline-offset:4px}
 
+/* Post list image tiles */
+.posts li.pt a{display:grid;grid-template-columns:132px 1fr;gap:20px;align-items:center}
+.pthumb{display:block;aspect-ratio:3/2;border-radius:12px;background-size:cover;background-position:center;background-color:#121A44}
+.pthumb[data-tint="eyewitness"]{background-image:radial-gradient(ellipse 70% 60% at 75% 15%,rgba(245,185,66,.4),transparent 65%),linear-gradient(160deg,#1E2A6B,#0A0F2C)}
+.pthumb[data-tint="numbers"]{background-image:radial-gradient(circle at 80% 20%,rgba(245,185,66,.35),transparent 55%),linear-gradient(150deg,#2B3A8C,#121A44)}
+.pthumb[data-tint="everyday"]{background-image:radial-gradient(circle at 80% 20%,rgba(245,185,66,.3),transparent 55%),linear-gradient(150deg,#3C4A7A,#1C2240)}
+.pthumb[data-tint="nature"]{background-image:radial-gradient(circle at 80% 20%,rgba(157,176,230,.36),transparent 55%),linear-gradient(150deg,#24506B,#121A44)}
+.posts a:hover .pthumb{filter:brightness(1.08)}
+@media (max-width:520px){.posts li.pt a{grid-template-columns:96px 1fr;gap:14px}}
+
 /* Membership */
 .join{background:var(--surface);border-top:1px solid var(--line)}
 .tiers{display:grid;grid-template-columns:1fr 1fr 1.1fr;margin-top:44px;border:1px solid var(--line);border-radius:22px;overflow:hidden}

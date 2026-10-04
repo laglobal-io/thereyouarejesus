@@ -1,6 +1,7 @@
 ---
 import type { Post } from '../lib/wp';
 import type { SiteSettings } from '../data/defaults';
+import PostItem from './PostItem.astro';
 interface Props { posts: Post[]; settings: SiteSettings }
 const { posts, settings } = Astro.props;
 const filters = [
@@ -17,11 +18,7 @@ const recent = posts.slice(0, 40);
         {filters.map(([k, n], i) => <button class="chip" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-cat={k}>{n}</button>)}
       </div>
       <ul class="posts" id="posts">
-        {recent.map((p, i) => (
-          <li data-cats={p.catSlugs.join(' ')} hidden={i >= 6}>
-            <a href={p.path}><div class="meta"><b>{p.primary?.name}</b>, {p.dateLabel}</div><h3>{p.title}</h3></a>
-          </li>
-        ))}
+        {recent.map((p, i) => <PostItem post={p} cats hidden={i >= 6} />)}
         <li class="empty" id="posts-empty" hidden>No posts in this category yet. Try another one.</li>
       </ul>
       <p style="margin-top:24px"><a class="text-link" href="/timeline-of-discovery-on-thereyouarejesus/">Browse everything on the timeline</a></p>

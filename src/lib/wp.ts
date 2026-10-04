@@ -14,6 +14,10 @@ export interface Post {
   date: string; dateLabel: string; modified: string; categoryIds: number[];
   primary: Category | null; catSlugs: string[]; image: { url: string; alt: string } | null;
   readMinutes: number;
+  /** The post's own featured image, sized for lists. Empty when John hasn't set one (the list shows a color tile). */
+  thumb: string;
+  /** Which evidence category's color to use when there's no image. */
+  tint: 'eyewitness' | 'numbers' | 'everyday' | 'nature';
 }
 export interface Page { id: number; slug: string; path: string; title: string; content: string; excerpt: string; }
 
@@ -91,6 +95,9 @@ export function getPosts(): Promise<Post[]> {
       for (const c of own) { slugs.add(c.slug); (await ancestorsOf(c)).forEach((a) => slugs.add(a.slug)); }
       const media = p._embedded?.['wp:featuredmedia']?.[0];
       const content = cleanContent(p.content?.rendered);
+      const evSlug = EVIDENCE.find((e) => slugs.has(e));
+      const sizes = media?.media_details?.sizes || {};
+      const mediaThumb = sizes.medium_large?.source_url || sizes.medium?.source_url || media?.source_url || '';
       posts.push({
         id: p.id, slug: p.slug, path: pathOf(p.link), title: decode(p.title?.rendered),
         excerpt: stripTags(cleanContent(p.excerpt?.rendered)).replace(/\s*\[…\]\s*$/, '…'),
@@ -98,6 +105,8 @@ export function getPosts(): Promise<Post[]> {
         primary, catSlugs: [...slugs],
         image: media?.source_url ? { url: media.source_url, alt: decode(media.alt_text || '') } : null,
         readMinutes: Math.max(1, Math.round(stripTags(content).split(' ').length / 230)),
+        thumb: mediaThumb,
+        tint: TINT[evSlug || ''] || 'numbers',
       });
     }
     return posts;
@@ -142,3 +151,6 @@ export function getSettings(): Promise<SiteSettings> {
 }
 
 export const EVIDENCE = ['eyewitness-afterlife', 'numbers', 'everyday-things', 'nature'] as const;
+const TINT: Record<string, Post['tint']> = {
+  'eyewitness-afterlife': 'eyewitness', numbers: 'numbers', 'everyday-things': 'everyday', nature: 'nature',
+};

@@ -1,0 +1,15 @@
+---
+import type { Post } from '../lib/wp';
+interface Props { post: Post; excerpt?: boolean; hidden?: boolean; cats?: boolean }
+const { post, excerpt = false, hidden = false, cats = false } = Astro.props;
+---
+<li class="pt" data-cats={cats ? post.catSlugs.join(' ') : undefined} hidden={hidden}>
+  <a href={post.path}>
+    <span class="pthumb" data-tint={post.tint} style={post.thumb ? `background-image:url('${post.thumb}')` : undefined} aria-hidden="true"></span>
+    <div>
+      <div class="meta"><b>{post.primary?.name}</b>, {post.dateLabel}</div>
+      <h3>{post.title}</h3>
+      {excerpt && post.excerpt && <p style="margin:6px 0 0;color:var(--muted);font-size:.98rem">{post.excerpt}</p>}
+    </div>
+  </a>
+</li>

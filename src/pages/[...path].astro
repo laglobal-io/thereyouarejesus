@@ -1,6 +1,7 @@
 ---
 // Every WordPress post and page, at the same web address it has today.
 import Base from '../layouts/Base.astro';
+import PostItem from '../components/PostItem.astro';
 import { getPosts, getPages, stripTags, type Post, type Page } from '../lib/wp';
 
 export async function getStaticPaths() {
@@ -73,7 +74,7 @@ const t = encodeURIComponent(post?.title || ''), u = encodeURIComponent(url);
             <div class="wrap" style="max-width:760px">
               <h2 class="sec-title" id="rel-title">More in {post.primary.name}</h2>
               <ul class="posts">
-                {related.map((q) => <li><a href={q.path}><div class="meta"><b>{q.primary?.name}</b>, {q.dateLabel}</div><h3>{q.title}</h3></a></li>)}
+                {related.map((q) => <PostItem post={q} />)}
               </ul>
             </div>
           </section>

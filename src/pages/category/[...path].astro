@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import PostItem from '../../components/PostItem.astro';
 import { getCategories, getPosts, type Category, type Post } from '../../lib/wp';
 
 export async function getStaticPaths() {
@@ -30,7 +31,7 @@ const { cat, posts, children } = Astro.props;
     )}
     <ul class="posts">
       {posts.length
-        ? posts.map((p) => <li><a href={p.path}><div class="meta"><b>{p.primary?.name}</b>, {p.dateLabel}</div><h3>{p.title}</h3>{p.excerpt && <p style="margin:6px 0 0;color:var(--muted);font-size:.98rem">{p.excerpt}</p>}</a></li>)
+        ? posts.map((p) => <PostItem post={p} excerpt />)
         : <li class="empty">No posts here yet. New evidence is added regularly.</li>}
     </ul>
   </div>
