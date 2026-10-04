@@ -3,6 +3,7 @@ import type { Station } from '../data/defaults';
 interface Props { stations: Station[] }
 const { stations } = Astro.props;
 const genres = ['All', ...new Set(stations.map((s) => s.genre))];
+const playIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg>';
 ---
 <section id="radio" aria-labelledby="rd-title">
   <div class="wrap">
@@ -10,32 +11,34 @@ const genres = ['All', ...new Set(stations.map((s) => s.genre))];
     <p class="lede">Worship, gospel, hymns and Bible teaching, streaming live from trusted Christian networks.</p>
     <div class="filters" role="group" aria-label="Filter stations by genre" id="radio-filters">
       {genres.map((g, i) => <button class="chip" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-g={g}>{g}</button>)}
+      <button class="chip" type="button" aria-pressed="false" data-g="Discover" id="discover-chip" hidden>Discover more</button>
     </div>
     <div class="tuner" id="tuner">
       <div class="on">
         <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <div style="min-width:0"><strong id="tuned-name">Choose a station</strong><br><span id="tuned-genre">Pick any station below to start listening</span></div>
+        <div style="min-width:0">
+          <strong id="tuned-name">Choose a station</strong><br>
+          <span class="live-pill" id="live-pill" hidden><i aria-hidden="true"></i>Live</span>
+          <span id="tuned-genre">Pick any station below to start listening</span>
+          <span class="now-song" id="now-song" aria-live="polite"></span>
+        </div>
       </div>
       <button class="skip-btn" type="button" id="radio-stop" style="color:var(--ink);border-color:var(--line)" hidden>Stop</button>
       <label>Volume <input type="range" id="radio-vol" min="0" max="1" step="0.05" value="0.8"></label>
     </div>
     <p class="radio-status" id="radio-status" aria-live="polite"></p>
     <ul class="stations" id="stations">
-      {stations.map((s) => (
+      {stations.map((s, i) => (
         <li data-g={s.genre}>
-          {s.stream
-            ? <button class="station" type="button" aria-pressed="false" aria-label={`Play ${s.name}`} data-stream={s.stream} data-name={s.name} data-genre={s.genre}>
-                <span class="pb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg></span>
-                <span class="g">{s.genre}</span><span class="nm">{s.name}</span><span class="ds">{s.description}</span>
-              </button>
-            : <a class="station" href={s.site} target="_blank" rel="noopener" aria-label={`Listen to ${s.name} on its website (opens in a new tab)`}>
-                <span class="pb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg></span>
-                <span class="g">{s.genre}</span><span class="nm">{s.name}</span><span class="ds">{s.description} Opens the station's player.</span>
-              </a>}
+          <button class="station" type="button" aria-pressed="false" aria-label={`Play ${s.name}`}
+            data-key={`s${i}`} data-name={s.name} data-genre={s.genre} data-site={s.site} data-stream={s.stream || undefined}>
+            <span class="pb" set:html={playIcon}></span>
+            <span class="g">{s.genre}</span><span class="nm">{s.name}</span><span class="ds">{s.description}</span>
+          </button>
         </li>
       ))}
     </ul>
     <audio id="radio-audio" preload="none"></audio>
-    <p class="radio-note">Stations are independent ministries and are not affiliated with ThereYouAreJesus.</p>
+    <p class="radio-note">Stations are independent ministries and are not affiliated with ThereYouAreJesus. Station directory by <a href="https://www.radio-browser.info/" style="color:inherit">Radio Browser</a>.</p>
   </div>
 </section>

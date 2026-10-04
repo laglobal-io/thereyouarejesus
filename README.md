@@ -58,7 +58,7 @@ Now publishing, editing or deleting a post rebuilds the site. The **Rebuild the 
 - **Homepage wording, announcement panel, Seven Spirits text**: Site Settings. Empty fields keep the default wording from `src/data/defaults.ts`.
 - **Radio stations**: Site Settings > Live radio stations, one per line:
   `Name | Genre | Short description | Website | Stream URL`
-  Only add stream URLs a station publishes for public use, ideally with their permission. Without a stream URL, the card opens the station's own player.
+  The stream URL is optional. Without one, the site finds the station's secure stream in the free Radio Browser directory (radio-browser.info) and plays it in the page, with backups if one stream is down. Only add a stream URL to override that. A station with no playable stream links to its own player instead. The **Discover more** filter adds popular Christian stations from the same directory automatically.
 - **Featured images** set on posts appear at the top of each post.
 
 Check the site on its `*.vercel.app` address before going live: open a dozen posts from different years and look for leftover formatting from the old theme.
@@ -86,6 +86,7 @@ src/pages/share.astro             Share Your Thoughts form
 src/pages/feed.xml.ts             RSS feed (used by Kit for new-post emails)
 src/pages/api/podcast.ts          Live podcast episode list
 src/pages/api/share.ts            Receives the form and sends it to WordPress
+src/pages/api/radio/              Live radio streams and "now playing" info (src/lib/radio.ts)
 src/components/                   Homepage sections
 src/data/defaults.ts              Default wording, membership tiers, store items, socials
 src/lib/wp.ts                     Reads from WordPress

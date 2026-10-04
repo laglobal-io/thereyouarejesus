@@ -5,6 +5,62 @@ const readJSON = <T>(id: string, fallback: T): T => {
   try { const el = $(id); return el ? (JSON.parse(el.textContent || '') as T) : fallback; } catch { return fallback; }
 };
 
+// ---------- Starfield: slow drift and gentle twinkle behind every page ----------
+(() => {
+  const c = document.getElementById('sky') as HTMLCanvasElement | null;
+  const ctx = c?.getContext('2d');
+  if (!c || !ctx) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tints = ['255,255,255', '255,255,255', '255,255,255', '214,224,255', '255,226,170'];
+  type Star = { x: number; y: number; r: number; a: number; tw: number; ph: number; v: number; glow: boolean; tint: string };
+  let W = 0, H = 0, stars: Star[] = [], last = 0, raf = 0;
+  const t0 = performance.now();
+  function draw(now: number, dt: number) {
+    const t = (now - t0) / 1000;
+    ctx!.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      if (dt) { s.x -= s.v * dt * 0.55; s.y -= s.v * dt * 0.22; if (s.x < -4) s.x = W + 4; if (s.y < -4) s.y = H + 4; }
+      const al = reduce ? s.a : s.a * (0.45 + 0.55 * (0.5 + 0.5 * Math.sin(s.ph + t * s.tw * 2)));
+      if (s.glow) {
+        const g = ctx!.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 5);
+        g.addColorStop(0, `rgba(${s.tint},${al * 0.35})`); g.addColorStop(1, `rgba(${s.tint},0)`);
+        ctx!.fillStyle = g; ctx!.beginPath(); ctx!.arc(s.x, s.y, s.r * 5, 0, 6.283); ctx!.fill();
+      }
+      ctx!.fillStyle = `rgba(${s.tint},${al})`; ctx!.beginPath(); ctx!.arc(s.x, s.y, s.r, 0, 6.283); ctx!.fill();
+    }
+  }
+  function build() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    c!.width = Math.round(W * dpr); c!.height = Math.round(H * dpr); ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    stars = Array.from({ length: Math.round((W * H) / 2400) }, () => {
+      const big = Math.random() < 0.12, depth = Math.random();
+      return {
+        x: Math.random() * W, y: Math.random() * H,
+        r: big ? 0.9 + Math.random() * 1.2 : 0.25 + Math.random() * 0.7,
+        a: big ? 0.55 + Math.random() * 0.4 : 0.2 + Math.random() * 0.5,
+        tw: 0.15 + Math.random() * 0.6, ph: Math.random() * 6.283,
+        v: (0.6 + depth * 2.4) * (big ? 1.4 : 1), glow: big && Math.random() < 0.5,
+        tint: tints[(Math.random() * tints.length) | 0],
+      };
+    });
+    draw(performance.now(), 0);
+  }
+  function loop(now: number) {
+    raf = requestAnimationFrame(loop);
+    if (now - last < 33) return; // ~30fps is plenty for slow drift
+    const dt = last ? Math.min(0.1, (now - last) / 1000) : 0; last = now; draw(now, dt);
+  }
+  let rt: number | undefined;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = window.setTimeout(build, 200); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+    else if (!reduce && !raf) { last = 0; raf = requestAnimationFrame(loop); }
+  });
+  build();
+  if (!reduce) raf = requestAnimationFrame(loop);
+})();
+
 // ---------- Mobile menu ----------
 const menuBtn = document.querySelector<HTMLButtonElement>('.menu-btn');
 const nav = $('nav');
@@ -168,38 +224,129 @@ if (audio && $('eps')) {
 }
 
 // ---------- Live radio ----------
+interface LiveStation { key: string; name: string; genre: string; description: string; site: string; streams: string[]; image: string }
 if (radio && $('stations')) {
-  const tuner = $('tuner')!, status = $('radio-status')!, stop = $('radio-stop')!;
-  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('button.station'));
+  const tuner = $('tuner')!, status = $('radio-status')!, stop = $('radio-stop')!, list = $('stations')!;
+  const pill = $('live-pill')!, song = $('now-song')!, genreEl = $('tuned-genre')!, nameEl2 = $('tuned-name')!;
   const playSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg>';
   const stopSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12v12H6z" fill="currentColor"/></svg>';
-  let active: HTMLButtonElement | null = null;
-  const setActive = (b: HTMLButtonElement | null) => buttons.forEach((x) => {
-    const on = x === b; x.setAttribute('aria-pressed', String(on));
-    x.querySelector('.pb')!.innerHTML = on ? stopSvg : playSvg;
-    x.setAttribute('aria-label', (on ? 'Stop ' : 'Play ') + x.dataset.name);
-  });
-  function stopRadio() {
-    radio!.pause(); radio!.removeAttribute('src'); radio!.load(); active = null; setActive(null); tuner.classList.remove('tuning');
-    $('tuned-name')!.textContent = 'Choose a station'; $('tuned-genre')!.textContent = 'Pick any station below to start listening';
-    stop.hidden = true; status.textContent = '';
+  const data = new Map<string, LiveStation>();
+  let active: HTMLButtonElement | null = null, tries = 0, nowTimer = 0;
+  let loaded: Promise<void> | null = null;
+
+  const buttons = () => Array.from(list.querySelectorAll<HTMLButtonElement>('button.station'));
+  function setActive(b: HTMLButtonElement | null) {
+    buttons().forEach((x) => {
+      const on = x === b; x.setAttribute('aria-pressed', String(on));
+      x.querySelector('svg')!.outerHTML = on ? stopSvg : playSvg;
+      x.setAttribute('aria-label', (on ? 'Stop ' : 'Play ') + x.dataset.name);
+    });
   }
-  buttons.forEach((b) => b.addEventListener('click', () => {
+  function decorate(b: HTMLButtonElement, st: LiveStation) {
+    const pb = b.querySelector<HTMLElement>('.pb')!;
+    if (st.image) { pb.classList.add('has-logo'); pb.style.backgroundImage = `url("${st.image}")`; }
+  }
+  function load() {
+    loaded ??= fetch('/api/radio').then((r) => (r.ok ? r.json() : { stations: [], discover: [] })).then((d: { stations: LiveStation[]; discover: LiveStation[] }) => {
+      d.stations.forEach((st) => {
+        data.set(st.key, st);
+        const b = list.querySelector<HTMLButtonElement>(`button[data-key="${st.key}"]`);
+        if (b) decorate(b, st);
+      });
+      if (d.discover.length) {
+        d.discover.forEach((st) => {
+          data.set(st.key, st);
+          const li = document.createElement('li'); li.dataset.g = 'Discover'; li.hidden = true;
+          li.innerHTML = `<button class="station" type="button" aria-pressed="false"><span class="pb">${playSvg}</span><span class="g"></span><span class="nm"></span><span class="ds"></span></button>`;
+          const b = li.querySelector('button')!;
+          Object.assign(b.dataset, { key: st.key, name: st.name, genre: st.genre, site: st.site });
+          b.setAttribute('aria-label', `Play ${st.name}`);
+          li.querySelector('.g')!.textContent = st.genre; li.querySelector('.nm')!.textContent = st.name; li.querySelector('.ds')!.textContent = st.description;
+          decorate(b, st); b.addEventListener('click', () => onStation(b)); list.appendChild(li);
+        });
+        $('discover-chip')!.hidden = false;
+      }
+    }).catch(() => {});
+    return loaded;
+  }
+  // Load the station list when the radio section comes into view.
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { load(); io.disconnect(); } }, { rootMargin: '600px' });
+    io.observe($('radio')!);
+  } else load();
+
+  async function refreshNow() {
+    if (!active) return;
+    const key = active.dataset.key;
+    try {
+      const r = await fetch(`/api/radio/now?key=${encodeURIComponent(key || '')}`);
+      const n = r.ok ? await r.json() : {};
+      if (active?.dataset.key !== key) return;
+      song.textContent = n.title ? (n.artist ? `${n.title}, ${n.artist}` : n.title) : '';
+    } catch { /* keep the last value */ }
+  }
+  function stopRadio() {
+    radio!.pause(); radio!.removeAttribute('src'); radio!.load();
+    if (active) active.classList.remove('connecting');
+    active = null; setActive(null); tuner.classList.remove('tuning'); clearInterval(nowTimer);
+    nameEl2.textContent = 'Choose a station'; genreEl.textContent = 'Pick any station below to start listening';
+    pill.hidden = true; song.textContent = ''; stop.hidden = true; status.textContent = '';
+  }
+  function tryStream(b: HTMLButtonElement, streams: string[]) {
+    if (tries >= streams.length) {
+      b.classList.remove('connecting'); tuner.classList.remove('tuning'); pill.hidden = true;
+      const site = b.dataset.site;
+      status.innerHTML = '';
+      status.append(`${b.dataset.name} isn't responding right now. Try again in a moment or choose another station.`);
+      if (site) { const a = document.createElement('a'); a.href = site; a.target = '_blank'; a.rel = 'noopener'; a.textContent = ' Listen on the station\u2019s website'; status.append(a); }
+      return;
+    }
+    const src = streams[tries];
+    radio!.src = src;
+    radio!.play().catch((err: DOMException) => { if (err?.name !== 'AbortError') advance(b, src); });
+  }
+  // Move to the station's next backup stream, once per failed stream.
+  function advance(b: HTMLButtonElement, failedSrc: string) {
+    if (active !== b || radio!.getAttribute('src') !== failedSrc) return;
+    const streams = b.dataset.stream ? [b.dataset.stream] : data.get(b.dataset.key || '')?.streams || [];
+    tries++; tryStream(b, streams);
+  }
+  async function onStation(b: HTMLButtonElement) {
     if (active === b) { stopRadio(); return; }
-    active = b; setActive(b); stop.hidden = false;
-    $('tuned-name')!.textContent = b.dataset.name || ''; $('tuned-genre')!.textContent = `${b.dataset.genre}, live`;
     if (audio && !audio.paused) audio.pause();
-    status.textContent = `Connecting to ${b.dataset.name}…`;
-    radio!.src = b.dataset.stream || ''; radio!.volume = +($<HTMLInputElement>('radio-vol')?.value || 0.8);
-    radio!.play().then(() => { tuner.classList.add('tuning'); status.textContent = ''; })
-      .catch(() => { tuner.classList.remove('tuning'); status.textContent = `${b.dataset.name} isn't responding right now. Try again in a moment or choose another station.`; });
-  }));
+    if (active) active.classList.remove('connecting');
+    active = b; setActive(b); stop.hidden = false; tries = 0; clearInterval(nowTimer);
+    nameEl2.textContent = b.dataset.name || ''; genreEl.textContent = b.dataset.genre || ''; song.textContent = '';
+    status.textContent = `Connecting to ${b.dataset.name}\u2026`; b.classList.add('connecting');
+    await load();
+    if (active !== b) return;
+    const streams = b.dataset.stream ? [b.dataset.stream] : data.get(b.dataset.key || '')?.streams || [];
+    if (!streams.length) {
+      b.classList.remove('connecting'); stopRadio();
+      status.innerHTML = '';
+      status.append(`${b.dataset.name} doesn't offer a stream that plays inside other sites.`);
+      if (b.dataset.site) { const a = document.createElement('a'); a.href = b.dataset.site; a.target = '_blank'; a.rel = 'noopener'; a.textContent = ' Listen on the station\u2019s website'; status.append(a); }
+      return;
+    }
+    radio!.volume = +($<HTMLInputElement>('radio-vol')?.value || 0.8);
+    tryStream(b, streams);
+  }
+  radio.addEventListener('playing', () => {
+    if (!active) return;
+    active.classList.remove('connecting'); tuner.classList.add('tuning'); pill.hidden = false; status.textContent = '';
+    refreshNow(); clearInterval(nowTimer); nowTimer = window.setInterval(refreshNow, 20000);
+  });
+  radio.addEventListener('error', () => { const src = radio!.getAttribute('src'); if (active && src) advance(active, src); });
+  radio.addEventListener('waiting', () => { if (active) status.textContent = 'Buffering\u2026'; });
+  buttons().forEach((b) => b.addEventListener('click', () => onStation(b)));
   stop.addEventListener('click', stopRadio);
   $<HTMLInputElement>('radio-vol')?.addEventListener('input', (e) => { radio!.volume = +(e.target as HTMLInputElement).value; });
   document.querySelectorAll<HTMLButtonElement>('#radio-filters .chip').forEach((chip, _, all) => chip.addEventListener('click', () => {
     all.forEach((c) => c.setAttribute('aria-pressed', 'false')); chip.setAttribute('aria-pressed', 'true');
     const g = chip.dataset.g;
-    document.querySelectorAll<HTMLLIElement>('#stations li').forEach((li) => { li.hidden = !(g === 'All' || li.dataset.g === g); });
+    list.querySelectorAll<HTMLLIElement>('li').forEach((li) => {
+      li.hidden = g === 'Discover' ? li.dataset.g !== 'Discover' : (li.dataset.g === 'Discover' || !(g === 'All' || li.dataset.g === g));
+    });
   }));
 }
 

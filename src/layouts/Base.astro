@@ -17,6 +17,7 @@ const year = new Date().getFullYear();
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="theme-color" content="#04061A">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{title}</title>
   <meta name="description" content={description}>
@@ -34,6 +35,8 @@ const year = new Date().getFullYear();
   <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital@0;1&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body id="top" class={settings.logo ? 'has-logo' : ''}>
+  <div class="nebula" aria-hidden="true"></div>
+  <canvas id="sky" aria-hidden="true"></canvas>
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="site-head">
