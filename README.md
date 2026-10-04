@@ -54,7 +54,7 @@ Now publishing, editing or deleting a post rebuilds the site. The **Rebuild the 
 ## 4. Fill in the content
 
 - **Logo**: Site Settings > Logo.
-- **Category images**: Posts > Categories > edit each of Eyewitness Afterlife, Numbers, Everyday Things and Nature > Category image. Category descriptions are used on the homepage too.
+- **Category images**: Posts > Categories > edit each of Eyewitness Afterlife, Numbers, Everyday Things and Nature > Category image. Any file name works. Eyewitness Afterlife is a tall tile (about 1600 × 1200 or larger); the other three are wide tiles (about 1200 × 600). Text sits along the bottom over a dark fade. Category descriptions show on the tiles too, so keep them to one short sentence.
 - **Homepage wording, announcement panel, Seven Spirits text**: Site Settings. Empty fields keep the default wording from `src/data/defaults.ts`.
 - **Radio stations**: Site Settings > Live radio stations, one per line:
   `Name | Genre | Short description | Website | Stream URL`

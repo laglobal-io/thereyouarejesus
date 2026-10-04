@@ -5,8 +5,8 @@ const { cats } = Astro.props;
 const by = (slug: string) => cats.find((c) => c.slug === slug);
 const eye = by('eyewitness-afterlife');
 const indirect = [
-  { c: by('numbers'), text: 'Repeating patterns from Heaven to earth, including the 7 Series and 11, 12 Series.', tint: 'numbers' },
-  { c: by('everyday-things'), text: 'Meaningful coincidences woven into ordinary life.', tint: 'everyday' },
+  { c: by('numbers'), text: 'Repeating patterns from Heaven to earth.', tint: 'numbers' },
+  { c: by('everyday-things'), text: 'Meaningful coincidences in ordinary life.', tint: 'everyday' },
   { c: by('nature'), text: "Messages delivered through God's creation.", tint: 'nature' },
 ].filter((x) => x.c);
 const series = ['the-7-series', '11-12-series'].map(by).filter(Boolean) as Category[];
@@ -36,10 +36,13 @@ const plural = (n: number) => `${n} post${n === 1 ? '' : 's'}`;
       <div class="ev-indirect">
         <p class="kind">Indirect evidence through multi-layered coincidences</p>
         {indirect.map(({ c, text, tint }) => (
-          <a class="ev-row" href={c!.path}>
-            <span class="thumb" data-img={tint} style={c!.image ? `background-image:url('${c!.image}')` : ''} aria-hidden="true"></span>
-            <h3>{c!.name}</h3><p>{c!.description || text}</p>
-            <span class="n">{c!.count}<small>posts</small></span>
+          <a class={`ev-tile${c!.image ? ' has-img' : ''}`} data-host={tint} href={c!.path}>
+            <span class="ev-img" style={c!.image ? `background-image:url('${c!.image}')` : ''} aria-hidden="true"></span>
+            <span class="shade" aria-hidden="true"></span>
+            <div class="ev-body">
+              <div><h3>{c!.name}</h3><p>{c!.description || text}</p></div>
+              <span class="n">{plural(c!.count)}</span>
+            </div>
           </a>
         ))}
       </div>

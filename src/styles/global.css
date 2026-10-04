@@ -163,6 +163,25 @@ section{padding:clamp(64px,9vw,112px) 0}
 .img-slot input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .img-slot .btn-line{padding:8px 14px;font-size:.88rem}
 .img-slot .st{font-size:.85rem;color:var(--muted);min-height:1.3em;margin:8px 0 0}
+/* Evidence image tiles */
+.ev-img,.ev-direct .shade,.ev-tile .shade{position:absolute;inset:0;pointer-events:none}
+.ev-img{background-size:cover;background-position:center;opacity:0;transition:opacity .4s}
+.ev-tile .shade{background:linear-gradient(0deg,rgba(10,15,44,.9) 8%,rgba(10,15,44,.35) 65%,rgba(10,15,44,.1));opacity:0;transition:opacity .4s}
+.has-img .ev-img,.has-img .shade{opacity:1}
+.ev-indirect{display:flex;flex-direction:column;gap:14px;border-top:0}
+.ev-indirect .kind{border-bottom:0;padding:0;margin:0 0 2px}
+.ev-tile{position:relative;overflow:hidden;flex:1;min-height:150px;border-radius:18px;display:flex;align-items:flex-end;padding:20px 24px;color:#ECEEF8;text-decoration:none}
+.ev-tile[data-host="numbers"]{background:radial-gradient(circle at 85% 20%,rgba(245,185,66,.3),transparent 55%),linear-gradient(150deg,#2B3A8C,#121A44)}
+.ev-tile[data-host="everyday"]{background:radial-gradient(circle at 85% 20%,rgba(245,185,66,.26),transparent 55%),linear-gradient(150deg,#3C4A7A,#1C2240)}
+.ev-tile[data-host="nature"]{background:radial-gradient(circle at 85% 20%,rgba(157,176,230,.32),transparent 55%),linear-gradient(150deg,#24506B,#121A44)}
+.ev-tile .ev-body{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;width:100%}
+.ev-tile h3{font-family:var(--display);font-weight:400;font-size:1.65rem;line-height:1.1;margin:0}
+.ev-tile p{margin:4px 0 0;color:#C9D1EE;font-size:.95rem}
+.ev-tile .n{flex:none;font-size:.9rem;color:var(--sky)}
+.ev-tile:hover h3,.ev-direct:hover h3{text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
+.ev-direct{min-height:500px}
+@media (max-width:860px){.ev-direct{min-height:360px}.ev-tile{min-height:170px}}
+
 .ev-foot{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px 22px;color:var(--muted);font-size:.98rem}
 
 /* Recent */
