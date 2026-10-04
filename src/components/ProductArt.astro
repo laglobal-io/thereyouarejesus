@@ -1,0 +1,11 @@
+---
+// Product image: the first photo if one exists, otherwise artwork in the site's style.
+interface Props { art: string; img?: string; alt?: string; eager?: boolean }
+const { art, img, alt = '', eager = false } = Astro.props;
+const bars: Record<string, number[]> = { print: [52, 60, 68, 78, 68, 60, 52], tee: [30, 36, 42, 48, 42, 36, 30], mug: [26, 32, 38, 44, 38, 32, 26] };
+---
+{img
+  ? <img class="prod-img" src={img} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+  : art === 'guide'
+    ? <div class="art guide" aria-hidden="true"><strong>The Biblical Trail of Sevens</strong><span>Study guide, Genesis to Revelation</span></div>
+    : <div class={`art ${art}`} aria-hidden="true">{(bars[art] || bars.print).map((h) => <i style={`height:${h}%`}></i>)}</div>}

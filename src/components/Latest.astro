@@ -31,11 +31,11 @@ const recent = posts.slice(0, 40);
         <a class="btn btn-gold" href={settings.notice.link}>See what's new</a>
       </div>
       <div class="panel">
-        <h3>Search the Bible by keyword</h3>
-        <p>Look up any word or phrase on Bible Gateway.</p>
-        <form class="search-row" id="bible-form" role="search">
-          <label for="bible-q" class="sr-only">Keyword</label>
-          <input id="bible-q" type="search" placeholder="Try: seven spirits" autocomplete="off">
+        <h3>Search the Bible</h3>
+        <p>Find any verse or word, right here on the site.</p>
+        <form class="search-row" action="/bible/" method="get" role="search">
+          <label for="lt-q" class="sr-only">Search the Bible</label>
+          <input id="lt-q" name="q" type="search" placeholder="Try: seven spirits" autocomplete="off">
           <button class="btn btn-ink" type="submit">Search</button>
         </form>
       </div>

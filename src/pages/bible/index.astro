@@ -1,0 +1,89 @@
+---
+import Base from '../../layouts/Base.astro';
+import { BOOKS, PATHS, DAILY } from '../../data/bible';
+---
+<Base title="The Bible: read, search and study | There You Are Jesus!" description="Read and search the whole Bible, compare the King James Version with plain Basic English, share verses, and follow study paths on the Seven Spirits of God.">
+  <header class="page-hero">
+    <div class="wrap">
+      <a href="/">Home</a>
+      <h1>The Bible</h1>
+      <p>Read, search and share the whole Bible. Compare the King James Version with the plain-language Bible in Basic English to understand each verse.</p>
+    </div>
+  </header>
+  <section id="bible-app" style="padding-top:12px" data-books={JSON.stringify(BOOKS)} data-daily={JSON.stringify(DAILY)} data-paths={JSON.stringify(PATHS)}>
+    <div class="wrap">
+      <div class="votd" id="votd" hidden>
+        <p class="votd-k">Verse of the day</p>
+        <blockquote id="votd-text"></blockquote>
+        <p class="votd-ref"><span id="votd-ref"></span> <button class="btn-line" type="button" id="votd-open">Read in context</button></p>
+      </div>
+
+      <div class="bible-bar">
+        <form class="bible-search" id="bible-search" role="search">
+          <label for="bs-q" class="sr-only">Search the Bible</label>
+          <input id="bs-q" type="search" placeholder="Search words, or a verse like John 3:16" autocomplete="off">
+          <select id="bs-scope" aria-label="Search in"><option value="all">Whole Bible</option><option value="ot">Old Testament</option><option value="nt">New Testament</option></select>
+          <button class="btn btn-gold" type="submit">Search</button>
+        </form>
+        <div class="bible-nav">
+          <select id="bb-book" aria-label="Book">{BOOKS.map(([n], i) => <option value={i}>{n}</option>)}</select>
+          <select id="bb-ch" aria-label="Chapter"></select>
+          <div class="seg" role="group" aria-label="Translation">
+            <button type="button" data-t="kjv" aria-pressed="true">KJV</button>
+            <button type="button" data-t="bbe" aria-pressed="false">Basic English</button>
+            <button type="button" data-t="both" aria-pressed="false">Side by side</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bible-grid">
+        <div class="bible-main">
+          <div id="bible-results" hidden></div>
+          <article id="bible-read" aria-live="polite">
+            <div class="ch-head">
+              <button class="btn-line" type="button" id="ch-prev" aria-label="Previous chapter">‹ Previous</button>
+              <h2 id="ch-title">Loading…</h2>
+              <button class="btn-line" type="button" id="ch-next" aria-label="Next chapter">Next ›</button>
+            </div>
+            <ol class="verses" id="verses"></ol>
+            <p class="bible-tip">Tap any verse to copy, share or compare it.</p>
+          </article>
+        </div>
+
+        <aside class="bible-side">
+          <div class="panel" id="study-panel">
+            <h3>My study</h3>
+            <div id="study-body"><p>Loading…</p></div>
+          </div>
+          <div class="panel">
+            <h3>Study paths</h3>
+            <ul class="paths">
+              {PATHS.map((p, i) => (
+                <li><button type="button" class="path-btn" data-path={i}><strong>{p.title}</strong><span>{p.about}</span></button></li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+      </div>
+      <p class="radio-note">Scripture: King James Version and Bible in Basic English, both public domain.</p>
+    </div>
+  </section>
+
+  <div class="verse-sheet" id="verse-sheet" hidden role="dialog" aria-labelledby="vs-ref">
+    <div class="vs-in">
+      <div class="vs-top"><strong id="vs-ref"></strong><button class="dock-close" type="button" id="vs-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+      <p class="vs-text" id="vs-text"></p>
+      <p class="vs-alt" id="vs-alt"></p>
+      <div class="vs-acts">
+        <button class="btn-line" type="button" id="vs-copy">Copy</button>
+        <button class="btn-line" type="button" id="vs-share">Share</button>
+        <button class="btn-line" type="button" id="vs-save">Save</button>
+        <span class="hl" role="group" aria-label="Highlight">
+          <button type="button" data-hl="gold" aria-label="Gold highlight"></button><button type="button" data-hl="blue" aria-label="Blue highlight"></button><button type="button" data-hl="green" aria-label="Green highlight"></button><button type="button" data-hl="rose" aria-label="Rose highlight"></button><button type="button" data-hl="" aria-label="Remove highlight">×</button>
+        </span>
+      </div>
+      <div class="vs-note"><label for="vs-note" class="sr-only">Your note</label><textarea id="vs-note" placeholder="Write a note on this verse…"></textarea><button class="btn btn-ink" type="button" id="vs-note-save">Save note</button></div>
+      <p class="form-msg" id="vs-msg" aria-live="polite"></p>
+    </div>
+  </div>
+</Base>

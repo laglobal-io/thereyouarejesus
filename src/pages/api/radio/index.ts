@@ -11,6 +11,6 @@ export const GET: APIRoute = async () => {
       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, s-maxage=21600, stale-while-revalidate=86400' },
     });
   } catch {
-    return new Response(JSON.stringify({ stations: [], discover: [] }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ stations: [] }), { status: 502, headers: { 'Content-Type': 'application/json' } });
   }
 };

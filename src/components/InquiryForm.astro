@@ -1,0 +1,23 @@
+---
+interface Props { topic: 'partnership' | 'press' | 'licensing'; email: string; kinds: string[]; kindLabel: string; button: string; deadline?: boolean }
+const { topic, email, kinds, kindLabel, button, deadline = false } = Astro.props;
+---
+<form class="inquiry-form" data-topic={topic} data-started={Date.now()} novalidate>
+  <div class="row2">
+    <div class="field"><label for={`${topic}-name`}>Your name</label><input type="text" id={`${topic}-name`} name="name" autocomplete="name"></div>
+    <div class="field"><label for={`${topic}-email`}>Email</label><input type="email" id={`${topic}-email`} name="email" autocomplete="email"></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label for={`${topic}-org`}>Organization</label><input type="text" id={`${topic}-org`} name="organization" autocomplete="organization"></div>
+    <div class="field"><label for={`${topic}-url`}>Website <span class="help" style="display:inline">(optional)</span></label><input type="text" id={`${topic}-url`} name="org_url" placeholder="example.com"></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label for={`${topic}-kind`}>{kindLabel}</label><select id={`${topic}-kind`} name="kind"><option value="">Choose one</option>{kinds.map((k) => <option>{k}</option>)}</select></div>
+    {deadline && <div class="field"><label for={`${topic}-deadline`}>Deadline <span class="help" style="display:inline">(optional)</span></label><input type="date" id={`${topic}-deadline`} name="deadline"></div>}
+  </div>
+  <div class="field"><label for={`${topic}-msg`}>Tell us more</label><textarea id={`${topic}-msg`} name="message"></textarea></div>
+  <div class="hp" aria-hidden="true"><label>Leave this empty<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+  <button class="btn btn-gold" type="submit">{button}</button>
+  <p class="form-msg" aria-live="polite" style="margin-top:12px"></p>
+  <p class="radio-note">Prefer email? Write to <a href={`mailto:${email}`} style="color:inherit">{email}</a>.</p>
+</form>

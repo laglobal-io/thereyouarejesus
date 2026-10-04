@@ -22,6 +22,10 @@ const json = JSON.stringify(episodes).replace(/</g, '\\u003c');
         <a class="btn btn-ghost" href="https://www.iheart.com/podcast/338-there-you-are-jesus-the-mo-126842793/">Listen on iHeart</a>
         <a class="btn btn-ghost" href={FEED}>RSS feed</a>
       </div>
+      <div style="margin-top:28px">
+        <a class="btn btn-gold" href="/podcasts/">Discover more podcasts</a>
+        <p class="np-desc" style="margin:12px 0 0">Top Christian podcasts from around the world, searchable by name and region.</p>
+      </div>
     </div>
     <div class="player" aria-label="Podcast player">
       <p class="np-label">Now playing</p>
@@ -32,17 +36,9 @@ const json = JSON.stringify(episodes).replace(/</g, '\\u003c');
         <button class="play" id="play" type="button" aria-label="Play">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path id="play-icon" d="M7 4l13 8-13 8z" fill="currentColor"/></svg>
         </button>
-        <button class="skip-btn" type="button" id="back15">Back 15s</button>
-        <button class="skip-btn" type="button" id="fwd30">Forward 30s</button>
-        <button class="skip-btn" type="button" id="speed" aria-label="Playback speed">1x</button>
-        <div class="scrub">
-          <span id="t-cur">0:00</span>
-          <input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Seek">
-          <span id="t-dur">0:00</span>
-        </div>
+        <span class="np-meta" style="margin:0">Plays in the player at the bottom of the screen</span>
       </div>
       <p class="pod-status" id="pod-status" aria-live="polite"></p>
-      <audio id="audio" preload="none"></audio>
       <ul class="eps" id="eps" aria-label="Episodes"></ul>
     </div>
   </div>

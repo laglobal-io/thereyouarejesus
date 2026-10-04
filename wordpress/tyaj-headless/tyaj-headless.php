@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ThereYouAreJesus Site Connector
  * Description: Connects WordPress to the new ThereYouAreJesus.com site: Site Settings, category images, a Messages inbox for Share Your Thoughts, and automatic site rebuilds when John publishes.
- * Version: 1.0.0
+ * Version: 1.2.0
  * Author: ThereYouAreJesus
  * Requires PHP: 7.4
  */
@@ -29,6 +29,10 @@ function tyaj_defaults() {
 		'public_url'   => '',
 		'deploy_hook'  => '',
 		'notify_email' => get_option('admin_email'),
+		'partnerships_email' => 'partnerships@thereyouarejesus.com',
+		'press_email' => 'press@thereyouarejesus.com',
+		'licensing_email' => 'licensing@thereyouarejesus.com',
+		'store_email' => '',
 	);
 }
 
@@ -102,6 +106,7 @@ function tyaj_sanitize($in) {
 	$out['public_url']   = esc_url_raw(untrailingslashit($in['public_url'] ?? ''));
 	$out['deploy_hook']  = esc_url_raw($in['deploy_hook'] ?? '');
 	$out['notify_email'] = sanitize_email($in['notify_email'] ?? '');
+	foreach (array('partnerships_email', 'press_email', 'licensing_email', 'store_email') as $k) { $out[$k] = sanitize_email($in[$k] ?? ''); }
 	if (!empty($in['regen_secret'])) { tyaj_secret(true); }
 	return $out;
 }
@@ -199,6 +204,10 @@ function tyaj_settings_page() {
 				<tr><th><label for="t-dh">Vercel deploy hook</label></th><td><input id="t-dh" class="large-text code" name="<?php echo esc_attr($n); ?>[deploy_hook]" value="<?php echo esc_attr($s['deploy_hook']); ?>"><p class="description">From Vercel: Project Settings, Git, Deploy Hooks. The site rebuilds whenever a post, page, category or these settings change.</p></td></tr>
 				<tr><th>Form secret</th><td><code style="user-select:all"><?php echo esc_html($s['form_secret']); ?></code><p class="description">Copy this into Vercel as the <code>TYAJ_FORM_SECRET</code> environment variable.</p><label><input type="checkbox" name="<?php echo esc_attr($n); ?>[regen_secret]" value="1"> Create a new secret when I save</label></td></tr>
 				<tr><th><label for="t-ne">Send messages to</label></th><td><input id="t-ne" type="email" class="regular-text" name="<?php echo esc_attr($n); ?>[notify_email]" value="<?php echo esc_attr($s['notify_email']); ?>"><p class="description">Share Your Thoughts messages are saved under Messages and emailed here.</p></td></tr>
+				<tr><th><label for="t-pe">Partnership inquiries</label></th><td><input id="t-pe" type="email" class="regular-text" name="<?php echo esc_attr($n); ?>[partnerships_email]" value="<?php echo esc_attr($s['partnerships_email']); ?>"></td></tr>
+				<tr><th><label for="t-pr">Press requests</label></th><td><input id="t-pr" type="email" class="regular-text" name="<?php echo esc_attr($n); ?>[press_email]" value="<?php echo esc_attr($s['press_email']); ?>"></td></tr>
+				<tr><th><label for="t-li">Licensing requests</label></th><td><input id="t-li" type="email" class="regular-text" name="<?php echo esc_attr($n); ?>[licensing_email]" value="<?php echo esc_attr($s['licensing_email']); ?>"><p class="description">These forms are also saved under Messages.</p></td></tr>
+				<tr><th><label for="t-so">Store orders</label></th><td><input id="t-so" type="email" class="regular-text" name="<?php echo esc_attr($n); ?>[store_email]" value="<?php echo esc_attr($s['store_email']); ?>"><p class="description">Who prepares and ships orders. Leave empty to use the address above.</p></td></tr>
 			</table>
 			<?php submit_button('Save and update the site'); ?>
 		</form>
@@ -296,7 +305,7 @@ add_action('rest_api_init', function () {
  * ------------------------------------------------------------- */
 
 function tyaj_topic_label($k) {
-	$t = array('question' => 'Question', 'story' => 'Experience', 'guest' => 'Podcast guest', 'prayer' => 'Prayer request', 'feedback' => 'Response to a post');
+	$t = array('question' => 'Question', 'story' => 'Experience', 'guest' => 'Podcast guest', 'prayer' => 'Prayer request', 'feedback' => 'Response to a post', 'partnership' => 'Partnership inquiry', 'press' => 'Press request', 'licensing' => 'Licensing request', 'order' => 'Store order');
 	return $t[$k] ?? ucfirst($k);
 }
 
@@ -329,13 +338,16 @@ function tyaj_receive_message(WP_REST_Request $r) {
 		'when' => sanitize_text_field($d['when'] ?? ''), 'phone' => sanitize_text_field($d['phone'] ?? ''),
 		'record' => !empty($d['record']) ? 'yes' : '', 'post' => sanitize_text_field($d['post'] ?? ''),
 		'perm' => sanitize_key($d['perm'] ?? 'private'), 'subscribe' => !empty($d['subscribe']) ? 'yes' : '',
+		'organization' => sanitize_text_field($d['organization'] ?? ''), 'org_url' => esc_url_raw($d['org_url'] ?? ''),
+		'deadline' => sanitize_text_field($d['deadline'] ?? ''),
 	);
 	foreach ($meta as $k => $v) { update_post_meta($id, '_tyaj_' . $k, $v); }
 
 	$s = tyaj_get();
-	$to = $s['notify_email'] ?: get_option('admin_email');
+	$route = array('partnership' => 'partnerships_email', 'press' => 'press_email', 'licensing' => 'licensing_email', 'order' => 'store_email');
+	$to = (isset($route[$topic]) && !empty($s[$route[$topic]])) ? $s[$route[$topic]] : ($s['notify_email'] ?: get_option('admin_email'));
 	$lines = array(tyaj_topic_label($topic) . ' from ' . $name . ' <' . $email . '>', '');
-	$labels = array('location' => 'From', 'kind' => 'Kind of experience', 'when' => 'When', 'phone' => 'Phone', 'record' => 'Open to recording', 'post' => 'About the post', 'perm' => 'Sharing permission', 'subscribe' => 'Wants new posts by email');
+	$labels = array('organization' => 'Organization', 'org_url' => 'Website', 'deadline' => 'Deadline', 'location' => 'From', 'kind' => 'Type', 'when' => 'When', 'phone' => 'Phone', 'record' => 'Open to recording', 'post' => 'About the post', 'perm' => 'Sharing permission', 'subscribe' => 'Wants new posts by email');
 	foreach ($labels as $k => $label) { if ($meta[$k] !== '') { $lines[] = $label . ': ' . $meta[$k]; } }
 	$lines[] = ''; $lines[] = $body; $lines[] = ''; $lines[] = 'View in WordPress: ' . admin_url('post.php?post=' . $id . '&action=edit');
 	wp_mail($to, 'New message on ThereYouAreJesus: ' . tyaj_topic_label($topic), implode("\n", $lines), array('Reply-To: ' . $name . ' <' . $email . '>'));
@@ -345,7 +357,7 @@ function tyaj_receive_message(WP_REST_Request $r) {
 
 add_action('add_meta_boxes_tyaj_message', function () {
 	add_meta_box('tyaj_details', 'Details', function ($post) {
-		$f = array('topic' => 'Topic', 'name' => 'Name', 'email' => 'Email', 'location' => 'From', 'kind' => 'Kind of experience', 'when' => 'When it happened', 'phone' => 'Phone', 'record' => 'Open to recording', 'post' => 'About the post', 'perm' => 'Can we share it?', 'subscribe' => 'Wants new posts by email');
+		$f = array('topic' => 'Topic', 'name' => 'Name', 'email' => 'Email', 'organization' => 'Organization', 'org_url' => 'Website', 'deadline' => 'Deadline', 'location' => 'From', 'kind' => 'Type', 'when' => 'When it happened', 'phone' => 'Phone', 'record' => 'Open to recording', 'post' => 'About the post', 'perm' => 'Can we share it?', 'subscribe' => 'Wants new posts by email');
 		echo '<table class="widefat striped"><tbody>';
 		foreach ($f as $k => $label) {
 			$v = get_post_meta($post->ID, '_tyaj_' . $k, true);

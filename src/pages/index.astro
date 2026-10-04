@@ -6,6 +6,7 @@ import Spirits from '../components/Spirits.astro';
 import Evidence from '../components/Evidence.astro';
 import Latest from '../components/Latest.astro';
 import Join from '../components/Join.astro';
+import BibleSection from '../components/BibleSection.astro';
 import Store from '../components/Store.astro';
 import Podcast from '../components/Podcast.astro';
 import Radio from '../components/Radio.astro';
@@ -21,6 +22,7 @@ const eye = cats.find((c) => c.slug === 'eyewitness-afterlife');
   <Spirits settings={settings} eyewitnessPath={eye?.path || '/'} />
   <Evidence cats={cats} />
   <Latest posts={posts} settings={settings} />
+  <BibleSection />
   <Join />
   <Store />
   <Podcast logo={settings.logo} />

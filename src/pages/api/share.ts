@@ -3,7 +3,7 @@ import { WP_URL } from '../../lib/wp';
 
 export const prerender = false;
 
-const TOPICS = ['question', 'story', 'guest', 'prayer', 'feedback'];
+const TOPICS = ['question', 'story', 'guest', 'prayer', 'feedback', 'partnership', 'press', 'licensing'];
 const json = (body: object, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 const str = (v: unknown, max = 200) => String(v ?? '').trim().slice(0, max);
 
@@ -18,8 +18,9 @@ export const POST: APIRoute = async ({ request }) => {
   const msg = {
     topic: str(d.topic, 20), name: str(d.name, 120), email: str(d.email, 200), location: str(d.location, 120),
     kind: str(d.kind, 60), when: str(d.when, 20), phone: str(d.phone, 40), record: d.record === 'yes',
-    post: str(d.post, 300), message: str(d.message, 10000), perm: d.topic === 'prayer' ? 'private' : str(d.perm, 20),
+    post: str(d.post, 300), message: str(d.message, 10000), perm: ['prayer', 'partnership', 'press', 'licensing'].includes(String(d.topic)) ? 'private' : str(d.perm, 20),
     subscribe: d.subscribe === 'yes',
+    organization: str(d.organization, 160), org_url: str(d.org_url, 200), deadline: str(d.deadline, 20),
   };
   if (!TOPICS.includes(msg.topic)) return json({ error: 'Choose a topic so we know how to help.' }, 400);
   if (!msg.name) return json({ error: 'Enter your name.' }, 400);

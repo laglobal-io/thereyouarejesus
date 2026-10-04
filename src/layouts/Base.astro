@@ -1,7 +1,11 @@
 ---
 import '../styles/global.css';
-import { getSettings } from '../lib/wp';
+import { ClientRouter } from 'astro:transitions';
+import { getSettings, getCategories } from '../lib/wp';
 import { socials, env } from '../data/defaults';
+import { PRODUCTS } from '../data/store';
+import { productImages } from '../lib/store-images';
+const catalog = PRODUCTS.map((p) => ({ id: p.id, name: p.name, price: p.price, options: p.options || null, digital: !!p.digital, img: productImages(p.id)[0] || '', art: p.art }));
 
 interface Props { title?: string; description?: string; image?: string; type?: string }
 const {
@@ -9,7 +13,21 @@ const {
   description = "John Levay's eyewitness account of the Seven Spirits of God, and modern day evidence of personal interactions with God through nature, numbers and everyday things.",
   image, type = 'website',
 } = Astro.props;
-const settings = await getSettings();
+const [settings, cats] = await Promise.all([getSettings(), getCategories()]);
+const catPath = (slug: string) => cats.find((c) => c.slug === slug)?.path || '/#evidence';
+const menus = {
+  evidence: [
+    ['Eyewitness Afterlife', catPath('eyewitness-afterlife')], ['Numbers', catPath('numbers')],
+    ['Everyday Things', catPath('everyday-things')], ['Nature', catPath('nature')],
+    ['Timeline of discovery', '/timeline-of-discovery-on-thereyouarejesus/'],
+  ],
+  listen: [['Christian Podcasts', '/podcasts/'], ['Live Christian Radio', '/radio/']],
+  contact: [
+    ['Get In Touch', '/share/'], ['Share Your Testimony', '/share/?topic=story'],
+    ['Press', '/press/'], ['Partnerships', '/partnerships/'], ['Licensing', '/licensing/'],
+  ],
+};
+const chevron = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 const year = new Date().getFullYear();
 ---
@@ -32,11 +50,12 @@ const year = new Date().getFullYear();
   <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'}>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital@0;1&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <ClientRouter fallback="swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body id="top" class={settings.logo ? 'has-logo' : ''}>
-  <div class="nebula" aria-hidden="true"></div>
-  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="nebula" aria-hidden="true" transition:persist="nebula"></div>
+  <canvas id="sky" aria-hidden="true" transition:persist="sky"></canvas>
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="site-head">
@@ -45,14 +64,32 @@ const year = new Date().getFullYear();
         {settings.logo && <span class="logo-mark" style={`background-image:url('${settings.logo}')`} aria-hidden="true"></span>}
         <span>There You Are Jesus<span style="color:var(--gold)">!</span></span>
       </a>
-      <button class="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
+      <div class="head-actions">
+        <button class="cart-btn" type="button" id="cart-btn" aria-label="Open your cart" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7zm3 0a3 3 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <span class="cart-count" id="cart-count">0</span>
+        </button>
+        <button class="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
+      </div>
       <nav class="nav" id="nav" aria-label="Main">
         <a href="/#testimony">John's account</a>
-        <a href="/#evidence">Evidence</a>
-        <a href="/#listen">Podcast</a>
-        <a href="/#radio">Radio</a>
-        <a href="/share/">Share</a>
-        <a href="/#store">Store</a>
+        <div class="nav-group">
+          <a class="nav-parent" href="/#evidence">Evidence</a>
+          <button class="nav-caret" type="button" aria-expanded="false" aria-controls="sub-evidence" aria-label="Evidence types" set:html={chevron}></button>
+          <div class="nav-sub" id="sub-evidence">{menus.evidence.map(([t, h]) => <a href={h}>{t}</a>)}</div>
+        </div>
+        <a href="/bible/">Bible</a>
+        <div class="nav-group">
+          <a class="nav-parent" href="/#listen">Listen</a>
+          <button class="nav-caret" type="button" aria-expanded="false" aria-controls="sub-listen" aria-label="Listen options" set:html={chevron}></button>
+          <div class="nav-sub" id="sub-listen">{menus.listen.map(([t, h]) => <a href={h}>{t}</a>)}</div>
+        </div>
+        <a href="/store/">Store</a>
+        <div class="nav-group">
+          <a class="nav-parent" href="/share/">Contact</a>
+          <button class="nav-caret" type="button" aria-expanded="false" aria-controls="sub-contact" aria-label="Contact options" set:html={chevron}></button>
+          <div class="nav-sub" id="sub-contact">{menus.contact.map(([t, h]) => <a href={h}>{t}</a>)}</div>
+        </div>
         <a href="/#join">Join</a>
         <a class="give" href={env.donate}>Donate</a>
       </nav>
@@ -71,8 +108,15 @@ const year = new Date().getFullYear();
           {settings.logo && <span class="logo-mark foot-logo" style={`background-image:url('${settings.logo}')`} aria-hidden="true"></span>}
           <p class="foot-brand">There You Are Jesus!</p>
           <p style="margin:0">Modern day evidence of two-way communication with God.</p>
-          <p style="margin:6px 0 0"><a href="/contact/" style="color:#D4DAF2">Contact</a>, or email <a href="mailto:john@thereyouarejesus.com" style="color:#D4DAF2">john@thereyouarejesus.com</a></p>
+          <p style="margin:6px 0 0"><a href="/share/" style="color:#D4DAF2">Contact</a>, or email <a href="mailto:john@thereyouarejesus.com" style="color:#D4DAF2">john@thereyouarejesus.com</a></p>
         </div>
+        <ul class="socials foot-links" aria-label="More">
+          <li><a href="/partnerships/">Partnerships</a></li>
+          <li><a href="/press/">Press</a></li>
+          <li><a href="/licensing/">Licensing</a></li>
+          <li><a href="/store/">Store</a></li>
+          <li><a href="/podcasts/">Podcasts</a></li>
+        </ul>
         <ul class="socials" aria-label="Social media">
           {socials.map((s) => <li><a href={s.url}>{s.name}</a></li>)}
           <li><a href="/feed.xml">RSS</a></li>
@@ -81,6 +125,50 @@ const year = new Date().getFullYear();
       <div class="copy">© {year} There You Are Jesus LLC. All rights reserved. Made from God's love.</div>
     </div>
   </footer>
+
+
+  <!-- Cart -->
+  <div class="cart" id="cart" hidden>
+    <div class="cart-shade" id="cart-shade"></div>
+    <div class="cart-panel" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+      <div class="cart-top"><h2 id="cart-title">Your cart</h2><button class="dock-close" type="button" id="cart-close" aria-label="Close cart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+      <ul class="cart-items" id="cart-items"></ul>
+      <div class="cart-foot" id="cart-foot">
+        <p class="cart-sub"><span>Subtotal</span><strong id="cart-subtotal">$0</strong></p>
+        <p class="radio-note" style="margin:0 0 14px">Shipping and any tax are added at checkout. Members can enter their code there.</p>
+        <button class="btn btn-gold" type="button" id="cart-checkout" style="width:100%">Check out</button>
+        <p class="form-msg" id="cart-msg" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="catalog" set:html={JSON.stringify(catalog).replace(/</g, '\\u003c')}></script>
+
+  <!-- One player for the whole site: live radio and podcast episodes. Kept alive between pages. -->
+  <audio id="player-audio" preload="none" transition:persist="player-audio"></audio>
+  <div class="dock" id="dock" hidden role="region" aria-label="Player" transition:persist="dock">
+    <div class="dock-in">
+      <span class="dock-logo" id="dock-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9h2a7 7 0 0 1 14 0h2a9 9 0 0 0-9-9zm0 4a5 5 0 0 0-5 5h2a3 3 0 0 1 6 0h2a5 5 0 0 0-5-5zm0 4a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" fill="currentColor"/></svg></span>
+      <div class="dock-text">
+        <div class="dock-station"><span class="live-pill" id="dock-live" hidden><i aria-hidden="true"></i>Live</span><span id="dock-sub"></span></div>
+        <div class="dock-title" id="dock-title" aria-live="polite"></div>
+        <div class="dock-artist" id="dock-artist"></div>
+        <div class="dock-progress" id="dock-progress" hidden>
+          <span id="dock-cur">0:00</span>
+          <input type="range" id="dock-seek" min="0" max="1000" value="0" step="1" aria-label="Seek">
+          <span id="dock-dur">0:00</span>
+        </div>
+      </div>
+      <label class="dock-vol"><span class="sr-only">Volume</span><input type="range" id="dock-vol" min="0" max="1" step="0.05" value="0.85" aria-label="Volume"></label>
+      <button class="dock-skip" type="button" id="dock-back" aria-label="Back 15 seconds" hidden>−15</button>
+      <button class="dock-play" type="button" id="dock-toggle" aria-label="Pause">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path id="dock-icon" d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor"/></svg>
+      </button>
+      <button class="dock-skip" type="button" id="dock-fwd" aria-label="Forward 30 seconds" hidden>+30</button>
+      <button class="dock-close" type="button" id="dock-close" aria-label="Close the player">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
 
   <script>
     import '../scripts/site.ts';

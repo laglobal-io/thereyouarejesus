@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProductArt from '../../components/ProductArt.astro';
+import { PRODUCTS, fromPrice } from '../../data/store';
+import { productImages } from '../../lib/store-images';
+const cats = ['All', ...new Set(PRODUCTS.map((p) => p.category))];
+---
+<Base title="Store | There You Are Jesus!" description="Seven Spirits art prints, apparel, gifts and study guides. Every purchase supports the ministry of ThereYouAreJesus.">
+  <header class="page-hero"><div class="wrap"><a href="/">Home</a><h1>The store</h1><p>Seven Spirits artwork for your home, apparel, gifts and study guides. Every purchase helps keep this message reaching more people.</p></div></header>
+  <section style="padding-top:20px">
+    <div class="wrap">
+      <div class="filters" role="group" aria-label="Filter products" id="store-filters">
+        {cats.map((c, i) => <button class="chip" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-cat={c}>{c}</button>)}
+      </div>
+      <ul class="store-grid store-all" id="store-list">
+        {PRODUCTS.map((p) => (
+          <li data-cat={p.category}>
+            <a class="product" href={`/store/${p.id}/`}>
+              <ProductArt art={p.art} img={productImages(p.id)[0]} alt={p.name} />
+              <div class="kind">{p.kind}</div>
+              <h3>{p.name}</h3>
+              <div class="p">{fromPrice(p)}</div>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="radio-note" style="margin-top:32px">Secure checkout by Stripe. Physical items ship in the U.S. and internationally; digital downloads are available right after purchase. Passion and Devout members: use your member code at checkout.</p>
+    </div>
+  </section>
+</Base>

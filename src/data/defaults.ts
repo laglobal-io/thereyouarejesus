@@ -2,7 +2,7 @@
 // Once saved in WordPress, those values replace these on the next build.
 
 export interface Spirit { name: string; verse: string; ref: string; meaning: string }
-export interface Station { name: string; genre: string; description: string; site: string; stream: string }
+export interface Station { name: string; genre: string; description: string; site: string; stream: string; uuid?: string }
 export interface SiteSettings {
   heroTitle: string; heroText: string; logo: string;
   notice: { title: string; text: string; date: string; link: string };
@@ -32,12 +32,12 @@ export const defaults: SiteSettings = {
   // Add each station's official stream URL (with permission) in WordPress. Without one, the card links to the station's site.
   stations: [
     { name: 'Air1', genre: 'Worship', description: "Today's top worship songs, around the clock.", site: 'https://www.air1.com/', stream: '' },
-    { name: 'Moody Radio Praise & Worship', genre: 'Worship', description: "Moody Radio's internet station for praise and worship music.", site: 'https://www.moodyradio.org/', stream: '' },
+    { name: 'Jesus Worship Club Radio', genre: 'Worship', description: 'Worship and praise, with preaching, teaching and live broadcasts.', site: 'https://jesusworshipclub.com/', stream: '', uuid: 'b97c4813-0333-47c0-a969-08b0766aa556' },
     { name: 'K-LOVE', genre: 'Contemporary', description: 'Positive, encouraging contemporary Christian music.', site: 'https://www.klove.com/', stream: '' },
+    { name: 'American Family Radio Talk', genre: 'Family talk', description: 'Christian talk on faith, family and current events.', site: 'https://afr.net/', stream: '' },
+    { name: 'Moody Radio Network', genre: 'Talk & teaching', description: 'Bible teaching, call-in talk and Christian perspective on the news.', site: 'https://www.moodyradio.org/', stream: '' },
     { name: 'Moody Radio Urban Praise', genre: 'Gospel', description: 'Urban gospel and praise from Moody Radio.', site: 'https://www.moodyradio.org/', stream: '' },
     { name: 'Moody Radio Hymns', genre: 'Hymns', description: 'Timeless hymns of the faith.', site: 'https://www.moodyradio.org/', stream: '' },
-    { name: 'Moody Radio Network', genre: 'Talk & teaching', description: 'Bible teaching, call-in talk and Christian perspective on the news.', site: 'https://www.moodyradio.org/', stream: '' },
-    { name: 'American Family Radio Talk', genre: 'Talk & teaching', description: 'Christian talk on faith, family and current events.', site: 'https://afr.net/', stream: '' },
     { name: 'Relevant Radio', genre: 'Talk & teaching', description: 'Catholic talk radio, prayer and conversation.', site: 'https://relevantradio.com/', stream: '' },
   ],
 };
@@ -63,6 +63,17 @@ export const socials = [
   { name: 'TikTok', url: 'https://www.tiktok.com/@thereyouarejesus' },
   { name: 'X', url: 'https://x.com/thereuarejesus' },
   { name: 'Reddit', url: 'https://www.reddit.com/user/ThereYouAreJesus/' },
+];
+
+export const inboxes = {
+  partnerships: import.meta.env.PUBLIC_PARTNERSHIPS_EMAIL || 'partnerships@thereyouarejesus.com',
+  press: import.meta.env.PUBLIC_PRESS_EMAIL || 'press@thereyouarejesus.com',
+  licensing: import.meta.env.PUBLIC_LICENSING_EMAIL || 'licensing@thereyouarejesus.com',
+};
+
+// Press coverage. Posts in a WordPress category named "Press" or "In the News" are added automatically.
+export const coverage = [
+  { outlet: 'The Savage Podcast', title: 'David Savage interviews John Levay on "Wrestling with the Inner Man"', date: 'April 4, 2026', kind: 'Podcast interview', url: '/2026/04/david-savage-interviews-john-levay-of-thereyouarejesus-on-the-savage-podcast/' },
 ];
 
 export const env = {

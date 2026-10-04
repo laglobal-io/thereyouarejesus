@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import { inboxes, coverage } from '../../data/defaults';
+import { getPosts, getSettings } from '../../lib/wp';
+const [posts, settings] = await Promise.all([getPosts(), getSettings()]);
+const fromWp = posts.filter((p) => p.catSlugs.some((s) => ['press', 'in-the-news', 'media-coverage', 'news-coverage'].includes(s)))
+  .map((p) => ({ outlet: p.primary?.name || 'In the news', title: p.title, date: p.dateLabel, kind: p.primary?.name || 'Coverage', url: p.path }));
+const items = [...fromWp, ...coverage.filter((c) => !fromWp.some((w) => w.url === c.url))];
+---
+<Base title="Press | There You Are Jesus!" description="Press information, coverage, and interview requests for John Levay and ThereYouAreJesus.">
+  <header class="page-hero"><div class="wrap"><a href="/">Home</a><h1>Press</h1><p>News, radio and podcast coverage of John Levay and ThereYouAreJesus, plus everything journalists and producers need.</p></div></header>
+  <section style="padding-top:24px">
+    <div class="wrap share-grid">
+      <div>
+        <h2 class="sec-title">In the news and on the air</h2>
+        <ul class="posts" style="margin-top:12px">
+          {items.map((c) => <li><a href={c.url}><div class="meta"><b>{c.kind}</b>, {c.date}</div><h3>{c.title}</h3></a></li>)}
+        </ul>
+
+        <h2 class="sec-title" style="margin-top:56px">About John Levay</h2>
+        <div class="prose" style="margin-top:12px">
+          <p>John Russell Levay is the founder of ThereYouAreJesus.com and host of the podcast There You Are Jesus: The Modern Day Evidence. At nine years old, John experienced a momentary death before being medically resuscitated. During that time, he says, his late grandfather George Russell Quirk showed him the Throne of God and the Seven Spirits of God, and he met Jesus Christ at Heaven's entrance.</p>
+          <p>Since a vision during prayer on September 29, 2013, John has shared that testimony and documented what he calls modern day evidence of interactions with God, through eyewitness accounts, nature, numbers and everyday things.</p>
+        </div>
+
+        <h2 class="sec-title" style="margin-top:48px">Quick facts</h2>
+        <ul class="tier" style="padding:0;border:0"><li>Founder and host: John Russell Levay</li><li>Website: ThereYouAreJesus.com, sharing evidence since 2013</li><li>Podcast: There You Are Jesus: The Modern Day Evidence (since October 2023)</li><li>Focus: the Seven Spirits of God, life after death, and God's communication through everyday life</li></ul>
+
+        <h2 class="sec-title" style="margin-top:48px">Logo and photos</h2>
+        <p class="lede">{settings.logo ? 'Download the logo below. ' : ''}For photos of John and high-resolution artwork, use the form and we'll send them the same day where possible.</p>
+        {settings.logo && <p style="margin-top:16px"><a class="btn btn-ghost" href={settings.logo} download>Download the logo</a></p>}
+      </div>
+      <aside class="panel">
+        <h3>Interview and media requests</h3>
+        <p>For interviews, radio and podcast bookings, quotes or fact checks.</p>
+        <InquiryForm topic="press" email={inboxes.press} kindLabel="Type of request" button="Send media request" deadline
+          kinds={['Interview', 'Radio or TV appearance', 'Podcast guest', 'Quote or comment', 'Photos or assets', 'Fact check', 'Something else']} />
+      </aside>
+    </div>
+  </section>
+</Base>

@@ -7,6 +7,9 @@ The new ThereYouAreJesus.com. John keeps writing in WordPress exactly as he does
 - **WordPress** is where John writes. Posts, pages, categories, category images, homepage wording, the Seven Spirits text and the radio station list are all edited there.
 - **This site** (Astro) builds fast static pages from WordPress. When John publishes or edits something, WordPress pings Vercel and the site rebuilds itself in about two minutes.
 - **Podcast** episodes come from the Podbean feed. New episodes show up within about 15 minutes, no rebuild needed.
+- **One player for everything**: John's podcast, featured radio, the full radio directory (/radio) and discovered podcasts (/podcasts) all play in the bar at the bottom, which keeps playing as visitors move between pages.
+- **Radio directory** (/radio): Christian stations worldwide from Radio Browser, refreshed on every deploy, filterable by region, genre and language. Featured stations on the homepage are listed first, in the order set in `src/data/defaults.ts` (Air1, then Jesus Worship Club Radio, and so on).
+- **Discover podcasts** (/podcasts): Apple Podcasts' Christianity charts by region, a worldwide popularity ranking, and search.
 - **Share Your Thoughts** messages are saved in WordPress under **Messages** and emailed to John.
 - **Email signup** goes to Kit. **Memberships** link to Memberful. **Store** links to Shopify.
 
@@ -63,7 +66,37 @@ Now publishing, editing or deleting a post rebuilds the site. The **Rebuild the 
 
 Check the site on its `*.vercel.app` address before going live: open a dozen posts from different years and look for leftover formatting from the old theme.
 
-## 5. Go live (cutover)
+## 5. Bible study accounts (Passion and Devout)
+
+Everyone can read, search, compare and share the Bible at /bible. Passion and Devout members can also save verses, highlight and write notes, which are stored in their account. Accounts use Supabase (sign-in by emailed link, no passwords), and Memberful tells the site who is a member.
+
+1. **Supabase:** create a free project at supabase.com. Open **SQL Editor**, paste the contents of `supabase/schema.sql`, and click **Run**.
+2. In Supabase **Authentication > URL Configuration**, set **Site URL** to `https://thereyouarejesus.com` and add `https://thereyouarejesus.com/bible/` (and your `.vercel.app` address while testing) under **Redirect URLs**.
+3. In Supabase **Project Settings > API**, copy the Project URL, the `anon` key and the `service_role` key into Vercel as `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`. The service key is secret; it must never go in a `PUBLIC_` variable.
+4. **Memberful:** in **Settings > Webhooks**, add `https://thereyouarejesus.com/api/memberful/webhook`, tick the member and subscription events, and copy its secret into Vercel as `MEMBERFUL_WEBHOOK_SECRET`. If your plans aren't named Passion and Devout, set `MEMBERFUL_PASSION_PLAN` and `MEMBERFUL_DEVOUT_PLAN` to their names or IDs.
+5. Redeploy. Use Memberful's **Send test** on the webhook, then check Supabase **Table Editor > memberships** for the test member.
+
+Members sign in under **My study** on the Bible page with the same email they joined with. Until these steps are done, the Bible works for everyone and the member tools say they're coming soon.
+
+## 6. Partnerships, press and licensing
+
+The /partnerships, /press and /licensing pages each have a form. Messages are saved under **Messages** in WordPress and emailed to `partnerships@`, `press@` and `licensing@thereyouarejesus.com`. Change those addresses in **Site Settings > Connection** (and the `PUBLIC_*_EMAIL` variables in Vercel, which are shown on the pages). Install the updated plugin zip (version 1.1) for the routing to work.
+
+Press coverage: add items to `coverage` in `src/data/defaults.ts`, or publish posts in a WordPress category named **Press** or **In the News** and they appear automatically.
+
+## 7. The store
+
+Products, prices, sizes and descriptions live in `src/data/store.ts`. Photos go in `public/store/` (see the README there). The store has its own page (/store), a page per product, a cart on every page, and checkout through Stripe.
+
+1. In Stripe, go to **Developers > API keys** and copy the **secret key** into Vercel as `STRIPE_SECRET_KEY`. Start with the test key (`sk_test_...`) and test card `4242 4242 4242 4242`; switch to the live key when you're ready.
+2. In Stripe, go to **Developers > Webhooks > Add endpoint**: `https://thereyouarejesus.com/api/stripe/webhook`, event `checkout.session.completed`. Copy its signing secret into Vercel as `STRIPE_WEBHOOK_SECRET`. Each order is then saved under **Messages** in WordPress and emailed to the **Store orders** address in Site Settings (plugin version 1.2).
+3. Set `STORE_SHIPPING_CENTS` (flat shipping per order) and `STORE_SHIP_COUNTRIES`. To have Stripe add sales tax, turn on Stripe Tax and set `STRIPE_AUTOMATIC_TAX=true`.
+4. Digital products: upload the file somewhere private (for example a Google Drive or Dropbox link) and set `DOWNLOAD_TRAIL_OF_SEVENS_GUIDE` to that link. Buyers see a Download button on the thank-you page after payment.
+5. Member discount: in Stripe, create a **promotion code** (Products > Coupons) for 15% off and share it with Devout members. Checkout has a box for codes.
+
+Fulfillment: physical orders arrive by email with the shipping address. Place them with your print-on-demand provider (such as Printful) or ship them yourself. Until `STRIPE_SECRET_KEY` is set, the checkout button says the store opens soon.
+
+## 8. Go live (cutover)
 
 Do this at a quiet time, with WordPress backed up. If your host offers support, ask them to help with steps 1 and 2.
 
@@ -86,7 +119,17 @@ src/pages/share.astro             Share Your Thoughts form
 src/pages/feed.xml.ts             RSS feed (used by Kit for new-post emails)
 src/pages/api/podcast.ts          Live podcast episode list
 src/pages/api/share.ts            Receives the form and sends it to WordPress
-src/pages/api/radio/              Live radio streams and "now playing" info (src/lib/radio.ts)
+src/pages/api/radio/              Featured stations and "now playing" info (src/lib/radio.ts)
+src/pages/radio/                  Full Christian radio directory page; directory.json is built at each deploy
+src/pages/podcasts/               Discover Christian podcasts page
+src/pages/api/podcasts/           Podcast charts, search and show details (src/lib/podcasts.ts)
+src/pages/bible/                  Bible reader, search, study paths and member notes (src/lib/bible.ts, src/data/bible.ts)
+src/pages/api/bible/              Bible chapters, passages and search
+src/pages/api/memberful/          Memberful webhook that unlocks member study tools
+src/pages/partnerships|press|licensing/  Inquiry pages
+supabase/schema.sql               Member accounts and study notes
+src/pages/store/                  Store, product pages and order confirmation (catalog in src/data/store.ts)
+src/pages/api/checkout/, api/stripe/  Stripe checkout, order lookup and payment webhook
 src/components/                   Homepage sections
 src/data/defaults.ts              Default wording, membership tiers, store items, socials
 src/lib/wp.ts                     Reads from WordPress

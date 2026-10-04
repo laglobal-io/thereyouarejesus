@@ -1,0 +1,27 @@
+---
+import { PATHS } from '../data/bible';
+---
+<section id="bible" aria-labelledby="bible-title">
+  <div class="wrap share-grid">
+    <div>
+      <h2 class="sec-title" id="bible-title">Read and study the Bible</h2>
+      <p class="lede">Search every verse, compare the King James Version with plain Basic English, share verses with friends, and follow study paths on the Seven Spirits of God.</p>
+      <form class="bible-search" action="/bible/" method="get" style="margin-top:24px">
+        <label for="hb-q" class="sr-only">Search the Bible</label>
+        <input id="hb-q" name="q" type="search" placeholder="Search words, or a verse like Isaiah 11:2" autocomplete="off">
+        <button class="btn btn-gold" type="submit">Search</button>
+      </form>
+      <div class="filters" style="margin-top:18px">
+        {PATHS.map((p, i) => <a class="chip" href={`/bible/?path=${i}`} style="text-decoration:none">{p.title}</a>)}
+      </div>
+      <p class="np-desc" style="margin-top:18px">Free for everyone. Passion and Devout members can also save verses, highlight, and keep study notes in their account.</p>
+    </div>
+    <aside class="panel votd-home" id="votd-home" hidden>
+      <p class="votd-k">Verse of the day</p>
+      <blockquote id="vh-text"></blockquote>
+      <p class="vh-alt" id="vh-alt"></p>
+      <p class="votd-ref" id="vh-ref"></p>
+      <a class="btn btn-ink" id="vh-link" href="/bible/">Open the Bible</a>
+    </aside>
+  </div>
+</section>

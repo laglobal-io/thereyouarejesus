@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import { inboxes } from '../../data/defaults';
+const what = [
+  ['Writing', "John's posts, testimony and the Biblical Trail of Sevens series, for books, curricula, articles and study guides."],
+  ['Podcast audio', 'Full episodes or clips for radio, podcasts, video and broadcast.'],
+  ['Artwork and visuals', 'The Seven Spirits artwork and site illustrations, for print, products and media.'],
+  ['Name and logo', 'The There You Are Jesus name and logo, for co-branded products and events.'],
+  ['Archives and datasets', 'The full archive of writing and audio for research, education or AI training, licensed only by written agreement.'],
+];
+---
+<Base title="Licensing | There You Are Jesus!" description="License writing, podcast audio, artwork and the There You Are Jesus name for media, publishing, products and research.">
+  <header class="page-hero"><div class="wrap"><a href="/">Home</a><h1>Licensing</h1><p>Use John's writing, podcast audio, artwork or the There You Are Jesus name in your own work.</p></div></header>
+  <section style="padding-top:24px">
+    <div class="wrap share-grid">
+      <div>
+        <h2 class="sec-title">What you can license</h2>
+        <ul class="topics" style="margin-top:20px">
+          {what.map(([t, d]) => <li><div style="padding:18px 4px;border-bottom:1px solid var(--line)"><strong style="display:block;font-family:var(--display);font-weight:400;font-size:1.35rem">{t}</strong><span style="color:var(--muted)">{d}</span></div></li>)}
+        </ul>
+
+        <h2 class="sec-title" style="margin-top:48px">No license needed</h2>
+        <p class="lede">You're welcome to share links to any page or episode, and to quote a sentence or two with credit to John Levay and a link back to ThereYouAreJesus.com. Scripture quoted on the site is from public-domain translations.</p>
+
+        <h2 class="sec-title" style="margin-top:48px">How it works</h2>
+        <ol class="steps" style="margin-top:20px">
+          <li><h3>Tell us what you'd like to use</h3><p>Which content, how it will be used, where, and for how long.</p></li>
+          <li><h3>We review it with John</h3><p>Every request is reviewed to make sure the use fits the message.</p></li>
+          <li><h3>Receive terms and a written license</h3><p>We send pricing, if any, and a license agreement. Use begins once it's signed.</p></li>
+        </ol>
+        <p class="radio-note">All content © There You Are Jesus LLC. Rights are granted only through a written license.</p>
+      </div>
+      <aside class="panel">
+        <h3>Request a license</h3>
+        <p>Share the details and we'll follow up with next steps.</p>
+        <InquiryForm topic="licensing" email={inboxes.licensing} kindLabel="Intended use" button="Send licensing request"
+          kinds={['Book or publication', 'Curriculum or study guide', 'Radio or TV broadcast', 'Podcast or video', 'Film or documentary', 'Products or merchandise', 'Research or AI training', 'Something else']} />
+      </aside>
+    </div>
+  </section>
+</Base>

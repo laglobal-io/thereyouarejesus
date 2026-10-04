@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import { inboxes } from '../../data/defaults';
+const ways = [
+  ['Brand collaborations', 'Faith-aligned brands can sponsor podcast episodes or newsletters, or collaborate on products such as the Seven Spirits artwork collection.'],
+  ['Content partnerships', 'Guest appearances, interviews, co-created series and podcast swaps with ministries, authors and creators who share the message.'],
+  ['Churches and ministries', 'Speaking invitations, study materials on the Seven Spirits of God, and events built around John\'s testimony.'],
+  ['Media and syndication', 'Radio, television and digital outlets carrying ThereYouAreJesus content. See licensing for reuse of existing content.'],
+];
+---
+<Base title="Partnerships | There You Are Jesus!" description="Brand collaborations, content partnerships, and ministry partnerships with ThereYouAreJesus.">
+  <header class="page-hero"><div class="wrap"><a href="/">Home</a><h1>Partner with us</h1><p>We work with brands, ministries, churches and creators who want to share modern day evidence of God with more people.</p></div></header>
+  <section style="padding-top:24px">
+    <div class="wrap share-grid">
+      <div>
+        <h2 class="sec-title">Ways to partner</h2>
+        <ul class="topics" style="margin-top:20px">
+          {ways.map(([t, d]) => <li><div style="padding:18px 4px;border-bottom:1px solid var(--line)"><strong style="display:block;font-family:var(--display);font-weight:400;font-size:1.35rem">{t}</strong><span style="color:var(--muted)">{d}</span></div></li>)}
+        </ul>
+        <h2 class="sec-title" style="margin-top:48px">What we look for</h2>
+        <p class="lede">Partners whose work honors God and respects John's testimony. Every collaboration is reviewed by John before it goes ahead, and we're glad to share our current audience details and media kit once we know what you have in mind.</p>
+      </div>
+      <aside class="panel">
+        <h3>Start a conversation</h3>
+        <p>Tell us a little about your idea. We usually reply within a few business days.</p>
+        <InquiryForm topic="partnership" email={inboxes.partnerships} kindLabel="Type of partnership" button="Send partnership inquiry"
+          kinds={['Brand collaboration', 'Sponsorship', 'Content partnership', 'Church or ministry', 'Media or syndication', 'Something else']} />
+      </aside>
+    </div>
+  </section>
+</Base>

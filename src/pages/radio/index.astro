@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Christian radio from around the world | There You Are Jesus!" description="Listen live to Christian radio stations from around the world: worship, gospel, hymns, Catholic, talk and teaching, in many languages.">
+  <header class="page-hero">
+    <div class="wrap">
+      <a href="/#radio">Featured stations</a>
+      <h1>Christian radio from around the world</h1>
+      <p>Worship, gospel, hymns and Bible teaching, live from every continent. Tap any station to listen in the player at the bottom of the screen.</p>
+    </div>
+  </header>
+  <section id="radio-dir" style="padding-top:8px">
+    <div class="wrap">
+      <div class="dir-tools">
+        <div><label for="rd-q">Search stations</label><input id="rd-q" type="search" placeholder="Name, city or country" autocomplete="off"></div>
+        <div><label for="rd-region">Region</label><select id="rd-region"><option value="">All regions</option></select></div>
+        <div><label for="rd-genre">Genre</label><select id="rd-genre"><option value="">All genres</option></select></div>
+        <div><label for="rd-lang">Language</label><select id="rd-lang"><option value="">All languages</option></select></div>
+      </div>
+      <p class="dir-count" id="rd-count" aria-live="polite">Loading stations…</p>
+      <ul class="stations" id="rd-list"></ul>
+      <div class="dir-more"><button class="btn btn-ghost" type="button" id="rd-more" hidden>Show more stations</button></div>
+      <p class="radio-note">Stations are independent and are not affiliated with ThereYouAreJesus. Directory by <a href="https://www.radio-browser.info/" style="color:inherit">Radio Browser</a>; only secure streams that play in your browser are listed.</p>
+    </div>
+  </section>
+</Base>

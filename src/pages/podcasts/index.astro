@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import { STORES } from '../../lib/podcasts';
+---
+<Base title="Discover Christian podcasts | There You Are Jesus!" description="The top Christian podcasts by region and worldwide, searchable, with episodes you can play right here.">
+  <header class="page-hero">
+    <div class="wrap">
+      <a href="/#listen">There You Are Jesus podcast</a>
+      <h1>Discover Christian podcasts</h1>
+      <p>The most listened-to Christian podcasts around the world. Tap a show to see its episodes, then press play to listen here.</p>
+    </div>
+  </header>
+  <section id="pod-dir" style="padding-top:8px">
+    <div class="wrap">
+      <div class="dir-tools" style="grid-template-columns:2fr 1fr 1fr">
+        <form id="pd-form" role="search"><label for="pd-q">Search podcasts</label><input id="pd-q" type="search" placeholder="Show, host or topic" autocomplete="off"></form>
+        <div><label for="pd-region">Region</label>
+          <select id="pd-region">
+            <option value="all">Worldwide (most popular)</option>
+            {STORES.map(([cc, name]) => <option value={cc}>{name}</option>)}
+          </select></div>
+        <div><label for="pd-sort">Sort by</label>
+          <select id="pd-sort"><option value="rank">Rank</option><option value="az">Name, A to Z</option></select></div>
+      </div>
+      <p class="dir-count" id="pd-count" aria-live="polite">Loading podcasts…</p>
+      <ul class="pod-grid2" id="pd-grid"></ul>
+      <p class="radio-note" style="margin-top:28px">Rankings come from Apple Podcasts' Christianity charts. Shows are independent and not affiliated with ThereYouAreJesus.</p>
+    </div>
+  </section>
+</Base>
