@@ -85,6 +85,6 @@ const t = encodeURIComponent(post?.title || ''), u = encodeURIComponent(url);
 {page && (
   <Base title={`${page.title} | There You Are Jesus!`} description={(page.excerpt || stripTags(page.content)).slice(0, 160)}>
     <header class="page-hero"><div class="wrap"><a href="/">Home</a><h1>{page.title}</h1></div></header>
-    <div class="wrap post-body"><div class="prose" set:html={page.content} /></div>
+    <section style="padding:0"><div class="wrap post-body"><div class="prose" set:html={page.content} /></div></section>
   </Base>
 )}

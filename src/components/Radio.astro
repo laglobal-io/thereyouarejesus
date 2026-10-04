@@ -13,19 +13,6 @@ const playIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8
       {genres.map((g, i) => <button class="chip" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-g={g}>{g}</button>)}
       <button class="chip" type="button" aria-pressed="false" data-g="Discover" id="discover-chip" hidden>Discover more</button>
     </div>
-    <div class="tuner" id="tuner">
-      <div class="on">
-        <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <div style="min-width:0">
-          <strong id="tuned-name">Choose a station</strong><br>
-          <span class="live-pill" id="live-pill" hidden><i aria-hidden="true"></i>Live</span>
-          <span id="tuned-genre">Pick any station below to start listening</span>
-          <span class="now-song" id="now-song" aria-live="polite"></span>
-        </div>
-      </div>
-      <button class="skip-btn" type="button" id="radio-stop" style="color:var(--ink);border-color:var(--line)" hidden>Stop</button>
-      <label>Volume <input type="range" id="radio-vol" min="0" max="1" step="0.05" value="0.8"></label>
-    </div>
     <p class="radio-status" id="radio-status" aria-live="polite"></p>
     <ul class="stations" id="stations">
       {stations.map((s, i) => (
@@ -39,6 +26,24 @@ const playIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8
       ))}
     </ul>
     <audio id="radio-audio" preload="none"></audio>
+    <!-- Player bar that slides up from the bottom while a station is on -->
+    <div class="dock" id="radio-dock" hidden role="region" aria-label="Radio player">
+      <div class="dock-in">
+        <span class="dock-logo" id="dock-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9h2a7 7 0 0 1 14 0h2a9 9 0 0 0-9-9zm0 4a5 5 0 0 0-5 5h2a3 3 0 0 1 6 0h2a5 5 0 0 0-5-5zm0 4a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" fill="currentColor"/></svg></span>
+        <div class="dock-text">
+          <div class="dock-station"><span class="live-pill" id="dock-live" hidden><i aria-hidden="true"></i>Live</span><span id="dock-station"></span></div>
+          <div class="dock-title" id="dock-title" aria-live="polite"></div>
+          <div class="dock-artist" id="dock-artist"></div>
+        </div>
+        <label class="dock-vol"><span class="sr-only">Volume</span><input type="range" id="radio-vol" min="0" max="1" step="0.05" value="0.8" aria-label="Volume"></label>
+        <button class="dock-play" type="button" id="dock-toggle" aria-label="Pause">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path id="dock-icon" d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor"/></svg>
+        </button>
+        <button class="dock-close" type="button" id="dock-close" aria-label="Close the radio player">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
     <p class="radio-note">Stations are independent ministries and are not affiliated with ThereYouAreJesus. Station directory by <a href="https://www.radio-browser.info/" style="color:inherit">Radio Browser</a>.</p>
   </div>
 </section>

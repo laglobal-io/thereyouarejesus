@@ -58,7 +58,7 @@ Now publishing, editing or deleting a post rebuilds the site. The **Rebuild the 
 - **Homepage wording, announcement panel, Seven Spirits text**: Site Settings. Empty fields keep the default wording from `src/data/defaults.ts`.
 - **Radio stations**: Site Settings > Live radio stations, one per line:
   `Name | Genre | Short description | Website | Stream URL`
-  The stream URL is optional. Without one, the site finds the station's secure stream in the free Radio Browser directory (radio-browser.info) and plays it in the page, with backups if one stream is down. Only add a stream URL to override that. A station with no playable stream links to its own player instead. The **Discover more** filter adds popular Christian stations from the same directory automatically.
+  The stream URL is optional. Without one, the site finds the station's secure stream in the free Radio Browser directory (radio-browser.info) and plays it in the page, with backups if one stream is down. Only add a stream URL to override that. Every stream is checked before stations are listed, and stations whose live stream can't play are left out automatically (and removed on the spot if they fail while someone is listening). The **Discover more** filter adds popular Christian stations from the same directory automatically.
 - **Featured images** set on posts appear at the top of each post.
 
 Check the site on its `*.vercel.app` address before going live: open a dozen posts from different years and look for leftover formatting from the old theme.

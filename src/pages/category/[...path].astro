@@ -1,29 +1,35 @@
 ---
 import Base from '../../layouts/Base.astro';
 import PostItem from '../../components/PostItem.astro';
-import { getCategories, getPosts, type Category, type Post } from '../../lib/wp';
+import { getCategories, getPosts, ancestorsOf, type Category, type Post } from '../../lib/wp';
 
 export async function getStaticPaths() {
   const [cats, posts] = await Promise.all([getCategories(), getPosts()]);
-  return cats
+  return Promise.all(cats
     .filter((c) => c.path.startsWith('/category/'))
-    .map((c) => ({
+    .map(async (c) => ({
       params: { path: c.path.replace(/^\/category\/|\/$/g, '') },
-      props: { cat: c, posts: posts.filter((p) => p.catSlugs.includes(c.slug)), children: cats.filter((x) => x.parent === c.id && x.count > 0) },
-    }));
+      props: {
+        cat: c, posts: posts.filter((p) => p.catSlugs.includes(c.slug)), children: cats.filter((x) => x.parent === c.id && x.count > 0),
+        // A series without its own image (like the 7 Series) uses its parent category's image.
+        image: c.image || (await ancestorsOf(c)).find((a) => a.image)?.image || '',
+      },
+    })));
 }
-interface Props { cat: Category; posts: Post[]; children: Category[] }
-const { cat, posts, children } = Astro.props;
+interface Props { cat: Category; posts: Post[]; children: Category[]; image: string }
+const { cat, posts, children, image } = Astro.props;
 ---
-<Base title={`${cat.name} | There You Are Jesus!`} description={cat.description || `Posts in ${cat.name} on ThereYouAreJesus.`} image={cat.image || undefined}>
-  <header class="page-hero">
+<Base title={`${cat.name} | There You Are Jesus!`} description={cat.description || `Posts in ${cat.name} on ThereYouAreJesus.`} image={image || undefined}>
+  <header class={`page-hero cat-hero${image ? ' has-img' : ''}`}>
+    {image && <span class="ev-img" style={`background-image:url('${image}')`} aria-hidden="true"></span>}
+    {image && <span class="shade" aria-hidden="true"></span>}
     <div class="wrap">
       <a href="/#evidence">Evidence</a>
       <h1>{cat.name}</h1>
       {cat.description && <p>{cat.description}</p>}
     </div>
   </header>
-  <div class="wrap post-body" style="max-width:860px">
+  <section style="padding:0"><div class="wrap post-body" style="max-width:860px">
     {children.length > 0 && (
       <div class="filters" style="margin-top:0">
         {children.map((c) => <a class="chip" href={c.path} style="text-decoration:none">{c.name}</a>)}
@@ -34,5 +40,5 @@ const { cat, posts, children } = Astro.props;
         ? posts.map((p) => <PostItem post={p} excerpt />)
         : <li class="empty">No posts here yet. New evidence is added regularly.</li>}
     </ul>
-  </div>
+  </div></section>
 </Base>

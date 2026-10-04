@@ -1,7 +1,18 @@
 // Reads everything from John's WordPress through its built-in REST API.
 // Results are cached for the length of one build, so each page doesn't refetch.
 
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { defaults, type SiteSettings } from '../data/defaults';
+
+// Category images can live in the repo at public/categories/<category-slug>.jpg (or .jpeg, .png, .webp).
+// A file there wins over an image chosen in WordPress.
+function repoImage(slug: string): string {
+  for (const ext of ['jpg', 'jpeg', 'png', 'webp']) {
+    if (existsSync(join(process.cwd(), 'public', 'categories', `${slug}.${ext}`))) return `/categories/${slug}.${ext}`;
+  }
+  return '';
+}
 
 export const WP_URL = (import.meta.env.WP_URL || 'https://thereyouarejesus.com').replace(/\/$/, '');
 
@@ -59,7 +70,7 @@ export function getCategories(): Promise<Category[]> {
   catCache ??= getAll('categories', '&hide_empty=false').then((rows) =>
     rows.map((c: any) => ({
       id: c.id, name: decode(c.name), slug: c.slug, parent: c.parent, count: c.count,
-      description: stripTags(c.description), path: pathOf(c.link), image: c.tyaj_image_url || '',
+      description: stripTags(c.description), path: pathOf(c.link), image: repoImage(c.slug) || c.tyaj_image_url || '',
     })),
   );
   return catCache;

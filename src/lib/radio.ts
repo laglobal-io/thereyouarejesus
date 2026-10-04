@@ -33,9 +33,23 @@ const playable = (s: any) => {
 };
 const https = (u = '') => (u.startsWith('https://') ? u : '');
 
+// Confirms a stream answers with audio right now, so only working stations are listed.
+async function works(url: string): Promise<boolean> {
+  const ac = new AbortController();
+  const to = setTimeout(() => ac.abort(), 5000);
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': UA }, signal: ac.signal });
+    const type = res.headers.get('content-type') || '';
+    res.body?.cancel().catch(() => {});
+    return res.ok && /audio|ogg|mpeg|aac|octet-stream/i.test(type);
+  } catch { return false; } finally { clearTimeout(to); ac.abort(); }
+}
+const keepWorking = async (urls: string[]) =>
+  (await Promise.all(urls.map(async (u) => ((await works(u)) ? u : '')))).filter(Boolean);
+
 async function resolve(st: Station, key: string): Promise<LiveStation> {
   const base: LiveStation = { key, name: st.name, genre: st.genre, description: st.description, site: st.site, streams: [], image: '', uuid: '' };
-  if (st.stream) return { ...base, streams: [st.stream] };
+  if (st.stream) return { ...base, streams: await keepWorking([st.stream]) };
   const want = norm(st.name).split(' ').filter((w) => w && w !== 'radio');
   const attempts = [st.name, st.name.split(' ')[0]];
   for (const q of attempts) {
@@ -45,8 +59,8 @@ async function resolve(st: Station, key: string): Promise<LiveStation> {
       .filter((r) => { const n = norm(r.name); return want.every((w) => n.includes(w)); })
       .sort((a, b) => (b.votes || 0) - (a.votes || 0));
     if (hits.length) {
-      const streams = [...new Set(hits.slice(0, 4).map((h) => h.url_resolved || h.url))].slice(0, 3);
-      return { ...base, streams, image: https(hits[0].favicon), uuid: hits[0].stationuuid };
+      const streams = (await keepWorking([...new Set(hits.slice(0, 5).map((h) => h.url_resolved || h.url))] as string[])).slice(0, 3);
+      if (streams.length) return { ...base, streams, image: https(hits[0].favicon), uuid: hits[0].stationuuid };
     }
   }
   return base; // No playable stream found: the card links to the station's own player.
@@ -62,20 +76,21 @@ async function discover(exclude: Set<string>): Promise<LiveStation[]> {
   const q = (tag: string) => rb(`/json/stations/search?tag=${tag}&is_https=true&hidebroken=true&language=english&order=clickcount&reverse=true&limit=60`);
   const rows = (await Promise.all(['christian', 'gospel', 'worship'].map(q))).flat();
   const seen = new Set(exclude);
-  const out: LiveStation[] = [];
+  const cand: LiveStation[] = [];
   for (const r of rows.sort((a, b) => (b.clickcount || 0) - (a.clickcount || 0))) {
     const n = norm(r.name);
     if (!n || seen.has(n) || !playable(r)) continue;
     seen.add(n);
     const tags = String(r.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean);
-    out.push({
-      key: `d${out.length}`, name: String(r.name).trim().slice(0, 60), genre: genreOf(r.tags),
+    cand.push({
+      key: '', name: String(r.name).trim().slice(0, 60), genre: genreOf(r.tags),
       description: [tags.slice(0, 3).join(', '), r.state || r.country].filter(Boolean).join('. ') || 'Christian radio.',
       site: r.homepage || '', streams: [r.url_resolved || r.url], image: https(r.favicon), uuid: r.stationuuid,
     });
-    if (out.length >= 24) break;
+    if (cand.length >= 40) break;
   }
-  return out;
+  const ok = await Promise.all(cand.map((c) => works(c.streams[0])));
+  return cand.filter((_, i) => ok[i]).slice(0, 24).map((c, i) => ({ ...c, key: `d${i}` }));
 }
 
 let cache: { at: number; data: RadioData } | null = null;
@@ -84,7 +99,8 @@ export async function getRadio(): Promise<RadioData> {
   const { stations } = await getSettings();
   const resolved = await Promise.all(stations.map((s, i) => resolve(s, `s${i}`)));
   const disc = await discover(new Set(resolved.map((s) => norm(s.name))));
-  const data = { stations: resolved, discover: disc };
+  // Stations whose live stream can't play here are left out entirely.
+  const data = { stations: resolved.filter((s) => s.streams.length), discover: disc };
   cache = { at: Date.now(), data };
   return data;
 }

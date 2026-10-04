@@ -205,7 +205,7 @@ if (audio && $('eps')) {
     else { $('np-title')!.textContent = 'Episodes are loading'; status.textContent = 'If this takes a while, listen on iHeart using the button on the left.'; }
   }
   playBtn.addEventListener('click', toggle);
-  audio.addEventListener('play', () => { setIcon(true); if (radio && !radio.paused) document.getElementById('radio-stop')?.click(); });
+  audio.addEventListener('play', () => { setIcon(true); if (radio && !radio.paused) (document.getElementById('dock-toggle') as HTMLButtonElement | null)?.click(); });
   audio.addEventListener('pause', () => setIcon(false));
   audio.addEventListener('loadedmetadata', () => { tDur.textContent = fmt(audio.duration); });
   audio.addEventListener('timeupdate', () => { if (audio.duration) { seek.value = String((audio.currentTime / audio.duration) * 100); tCur.textContent = fmt(audio.currentTime); } });
@@ -226,120 +226,164 @@ if (audio && $('eps')) {
 // ---------- Live radio ----------
 interface LiveStation { key: string; name: string; genre: string; description: string; site: string; streams: string[]; image: string }
 if (radio && $('stations')) {
-  const tuner = $('tuner')!, status = $('radio-status')!, stop = $('radio-stop')!, list = $('stations')!;
-  const pill = $('live-pill')!, song = $('now-song')!, genreEl = $('tuned-genre')!, nameEl2 = $('tuned-name')!;
+  const list = $('stations')!, status = $('radio-status')!, dock = $('radio-dock')!;
+  const dLogo = $('dock-logo')!, dLive = $('dock-live')!, dStation = $('dock-station')!, dTitle = $('dock-title')!, dArtist = $('dock-artist')!;
+  const dToggle = $<HTMLButtonElement>('dock-toggle')!, dIcon = document.getElementById('dock-icon')!;
+  const PLAY = 'M7 4l13 8-13 8z', PAUSE = 'M6 4h4v16H6zM14 4h4v16h-4z';
   const playSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg>';
-  const stopSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12v12H6z" fill="currentColor"/></svg>';
+  const pauseSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor"/></svg>';
   const data = new Map<string, LiveStation>();
-  let active: HTMLButtonElement | null = null, tries = 0, nowTimer = 0;
-  let loaded: Promise<void> | null = null;
+  let current: HTMLButtonElement | null = null, tries = 0, nowTimer = 0, loaded: Promise<boolean> | null = null;
 
   const buttons = () => Array.from(list.querySelectorAll<HTMLButtonElement>('button.station'));
-  function setActive(b: HTMLButtonElement | null) {
+  const streamsOf = (b: HTMLButtonElement) => data.get(b.dataset.key || '')?.streams || [];
+  const isOn = () => !!radio!.getAttribute('src') && !radio!.paused;
+
+  function paintCards() {
     buttons().forEach((x) => {
-      const on = x === b; x.setAttribute('aria-pressed', String(on));
-      x.querySelector('svg')!.outerHTML = on ? stopSvg : playSvg;
-      x.setAttribute('aria-label', (on ? 'Stop ' : 'Play ') + x.dataset.name);
+      const on = x === current && isOn();
+      x.setAttribute('aria-pressed', String(x === current));
+      x.querySelector('svg')!.outerHTML = on ? pauseSvg : playSvg;
+      x.setAttribute('aria-label', (on ? 'Pause ' : 'Play ') + x.dataset.name);
     });
   }
-  function decorate(b: HTMLButtonElement, st: LiveStation) {
-    const pb = b.querySelector<HTMLElement>('.pb')!;
-    if (st.image) { pb.classList.add('has-logo'); pb.style.backgroundImage = `url("${st.image}")`; }
+  function paintDock(state: 'connecting' | 'playing' | 'paused') {
+    dock.classList.toggle('connecting', state === 'connecting');
+    dIcon.setAttribute('d', state === 'paused' ? PLAY : PAUSE);
+    dToggle.setAttribute('aria-label', state === 'paused' ? 'Play' : 'Pause');
+    dLive.hidden = state !== 'playing';
+    paintCards();
   }
-  function load() {
-    loaded ??= fetch('/api/radio').then((r) => (r.ok ? r.json() : { stations: [], discover: [] })).then((d: { stations: LiveStation[]; discover: LiveStation[] }) => {
-      d.stations.forEach((st) => {
+  function decorate(b: HTMLButtonElement, st: LiveStation) {
+    if (!st.image) return;
+    const pb = b.querySelector<HTMLElement>('.pb')!;
+    pb.classList.add('has-logo'); pb.style.backgroundImage = `url("${st.image}")`;
+  }
+  function hideEmptyFilters() {
+    document.querySelectorAll<HTMLButtonElement>('#radio-filters .chip').forEach((chip) => {
+      const g = chip.dataset.g;
+      if (g === 'All') return;
+      chip.hidden = !list.querySelector(`li[data-g="${CSS.escape(g || '')}"]`);
+    });
+  }
+  function removeCard(b: HTMLButtonElement) { b.closest('li')?.remove(); hideEmptyFilters(); }
+
+  function load(): Promise<boolean> {
+    loaded ??= fetch('/api/radio').then((r) => (r.ok ? r.json() : null)).then((d: { stations: LiveStation[]; discover: LiveStation[] } | null) => {
+      if (!d) return false;
+      d.stations.forEach((st) => data.set(st.key, st));
+      // Only stations with a working live stream stay on the page.
+      buttons().forEach((b) => { const st = data.get(b.dataset.key || ''); if (st) decorate(b, st); else removeCard(b); });
+      d.discover.forEach((st) => {
         data.set(st.key, st);
-        const b = list.querySelector<HTMLButtonElement>(`button[data-key="${st.key}"]`);
-        if (b) decorate(b, st);
+        const li = document.createElement('li'); li.dataset.g = 'Discover'; li.hidden = true;
+        li.innerHTML = `<button class="station" type="button" aria-pressed="false"><span class="pb">${playSvg}</span><span class="g"></span><span class="nm"></span><span class="ds"></span></button>`;
+        const b = li.querySelector('button')!;
+        Object.assign(b.dataset, { key: st.key, name: st.name, genre: st.genre });
+        b.setAttribute('aria-label', `Play ${st.name}`);
+        li.querySelector('.g')!.textContent = st.genre; li.querySelector('.nm')!.textContent = st.name; li.querySelector('.ds')!.textContent = st.description;
+        decorate(b, st); b.addEventListener('click', () => onStation(b)); list.appendChild(li);
       });
-      if (d.discover.length) {
-        d.discover.forEach((st) => {
-          data.set(st.key, st);
-          const li = document.createElement('li'); li.dataset.g = 'Discover'; li.hidden = true;
-          li.innerHTML = `<button class="station" type="button" aria-pressed="false"><span class="pb">${playSvg}</span><span class="g"></span><span class="nm"></span><span class="ds"></span></button>`;
-          const b = li.querySelector('button')!;
-          Object.assign(b.dataset, { key: st.key, name: st.name, genre: st.genre, site: st.site });
-          b.setAttribute('aria-label', `Play ${st.name}`);
-          li.querySelector('.g')!.textContent = st.genre; li.querySelector('.nm')!.textContent = st.name; li.querySelector('.ds')!.textContent = st.description;
-          decorate(b, st); b.addEventListener('click', () => onStation(b)); list.appendChild(li);
-        });
-        $('discover-chip')!.hidden = false;
-      }
-    }).catch(() => {});
+      $('discover-chip')!.hidden = !d.discover.length;
+      hideEmptyFilters();
+      if (!list.querySelector('li')) status.textContent = 'Live radio is resting right now. Please check back soon.';
+      return true;
+    }).catch(() => false);
     return loaded;
   }
-  // Load the station list when the radio section comes into view.
   if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { load(); io.disconnect(); } }, { rootMargin: '600px' });
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { load(); io.disconnect(); } }, { rootMargin: '800px' });
     io.observe($('radio')!);
   } else load();
 
+  function setSong(title: string, artist: string) {
+    const st = current ? data.get(current.dataset.key || '') : null;
+    dTitle.textContent = title || current?.dataset.name || '';
+    dArtist.textContent = artist;
+    if ('mediaSession' in navigator && current) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: title || current.dataset.name || '', artist: artist || current.dataset.name || '',
+        album: 'Live on ThereYouAreJesus', artwork: st?.image ? [{ src: st.image, sizes: '256x256' }] : [],
+      });
+    }
+  }
   async function refreshNow() {
-    if (!active) return;
-    const key = active.dataset.key;
+    if (!current || !isOn()) return;
+    const key = current.dataset.key;
     try {
       const r = await fetch(`/api/radio/now?key=${encodeURIComponent(key || '')}`);
       const n = r.ok ? await r.json() : {};
-      if (active?.dataset.key !== key) return;
-      song.textContent = n.title ? (n.artist ? `${n.title}, ${n.artist}` : n.title) : '';
-    } catch { /* keep the last value */ }
+      if (current?.dataset.key !== key) return;
+      if (n.title) setSong(n.title, n.artist || '');
+      else if (!dArtist.textContent) setSong('', current.dataset.genre ? `${current.dataset.genre}, live` : 'Live');
+    } catch { /* keep what's showing */ }
   }
-  function stopRadio() {
-    radio!.pause(); radio!.removeAttribute('src'); radio!.load();
-    if (active) active.classList.remove('connecting');
-    active = null; setActive(null); tuner.classList.remove('tuning'); clearInterval(nowTimer);
-    nameEl2.textContent = 'Choose a station'; genreEl.textContent = 'Pick any station below to start listening';
-    pill.hidden = true; song.textContent = ''; stop.hidden = true; status.textContent = '';
-  }
-  function tryStream(b: HTMLButtonElement, streams: string[]) {
+
+  function tryStream(b: HTMLButtonElement) {
+    const streams = streamsOf(b);
     if (tries >= streams.length) {
-      b.classList.remove('connecting'); tuner.classList.remove('tuning'); pill.hidden = true;
-      const site = b.dataset.site;
-      status.innerHTML = '';
-      status.append(`${b.dataset.name} isn't responding right now. Try again in a moment or choose another station.`);
-      if (site) { const a = document.createElement('a'); a.href = site; a.target = '_blank'; a.rel = 'noopener'; a.textContent = ' Listen on the station\u2019s website'; status.append(a); }
+      // Every stream for this station failed: take it off the list.
+      const name = b.dataset.name;
+      closeDock(); removeCard(b);
+      status.textContent = `${name} isn't available right now, so it's been removed from the list.`;
       return;
     }
     const src = streams[tries];
     radio!.src = src;
     radio!.play().catch((err: DOMException) => { if (err?.name !== 'AbortError') advance(b, src); });
   }
-  // Move to the station's next backup stream, once per failed stream.
   function advance(b: HTMLButtonElement, failedSrc: string) {
-    if (active !== b || radio!.getAttribute('src') !== failedSrc) return;
-    const streams = b.dataset.stream ? [b.dataset.stream] : data.get(b.dataset.key || '')?.streams || [];
-    tries++; tryStream(b, streams);
+    if (current !== b || radio!.getAttribute('src') !== failedSrc) return;
+    tries++; tryStream(b);
+  }
+  function start(b: HTMLButtonElement) {
+    tries = 0; paintDock('connecting'); tryStream(b);
+  }
+  // Pausing live radio disconnects; playing again rejoins what's on now.
+  function pause() {
+    radio!.pause(); radio!.removeAttribute('src'); radio!.load(); clearInterval(nowTimer); paintDock('paused');
+  }
+  function closeDock() {
+    pause(); current = null; dock.hidden = true; document.body.classList.remove('has-dock'); paintCards();
+    if ('mediaSession' in navigator) navigator.mediaSession.metadata = null;
   }
   async function onStation(b: HTMLButtonElement) {
-    if (active === b) { stopRadio(); return; }
+    if (current === b) { if (isOn()) pause(); else start(b); return; }
     if (audio && !audio.paused) audio.pause();
-    if (active) active.classList.remove('connecting');
-    active = b; setActive(b); stop.hidden = false; tries = 0; clearInterval(nowTimer);
-    nameEl2.textContent = b.dataset.name || ''; genreEl.textContent = b.dataset.genre || ''; song.textContent = '';
-    status.textContent = `Connecting to ${b.dataset.name}\u2026`; b.classList.add('connecting');
-    await load();
-    if (active !== b) return;
-    const streams = b.dataset.stream ? [b.dataset.stream] : data.get(b.dataset.key || '')?.streams || [];
-    if (!streams.length) {
-      b.classList.remove('connecting'); stopRadio();
-      status.innerHTML = '';
-      status.append(`${b.dataset.name} doesn't offer a stream that plays inside other sites.`);
-      if (b.dataset.site) { const a = document.createElement('a'); a.href = b.dataset.site; a.target = '_blank'; a.rel = 'noopener'; a.textContent = ' Listen on the station\u2019s website'; status.append(a); }
+    if (current) pause();
+    current = b; status.textContent = '';
+    dStation.textContent = b.dataset.name || '';
+    const st = data.get(b.dataset.key || '');
+    dLogo.classList.toggle('has-logo', !!st?.image);
+    dLogo.style.backgroundImage = st?.image ? `url("${st.image}")` : '';
+    setSong('', 'Connecting\u2026');
+    dock.hidden = false; document.body.classList.add('has-dock');
+    paintDock('connecting');
+    const ok = await load();
+    if (current !== b) return;
+    if (!ok || !streamsOf(b).length) {
+      closeDock();
+      status.textContent = "Live radio couldn't load. Check your connection and try again.";
       return;
     }
-    radio!.volume = +($<HTMLInputElement>('radio-vol')?.value || 0.8);
-    tryStream(b, streams);
+    start(b);
   }
+
   radio.addEventListener('playing', () => {
-    if (!active) return;
-    active.classList.remove('connecting'); tuner.classList.add('tuning'); pill.hidden = false; status.textContent = '';
+    if (!current) return;
+    paintDock('playing');
+    if (dArtist.textContent === 'Connecting\u2026') setSong('', '');
     refreshNow(); clearInterval(nowTimer); nowTimer = window.setInterval(refreshNow, 20000);
   });
-  radio.addEventListener('error', () => { const src = radio!.getAttribute('src'); if (active && src) advance(active, src); });
-  radio.addEventListener('waiting', () => { if (active) status.textContent = 'Buffering\u2026'; });
+  radio.addEventListener('waiting', () => { if (current && radio!.getAttribute('src')) paintDock('connecting'); });
+  radio.addEventListener('error', () => { const src = radio!.getAttribute('src'); if (current && src) advance(current, src); });
+  dToggle.addEventListener('click', () => { if (!current) return; if (isOn()) pause(); else start(current); });
+  $('dock-close')!.addEventListener('click', closeDock);
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => { if (current) start(current); });
+    navigator.mediaSession.setActionHandler('pause', () => pause());
+  }
   buttons().forEach((b) => b.addEventListener('click', () => onStation(b)));
-  stop.addEventListener('click', stopRadio);
   $<HTMLInputElement>('radio-vol')?.addEventListener('input', (e) => { radio!.volume = +(e.target as HTMLInputElement).value; });
   document.querySelectorAll<HTMLButtonElement>('#radio-filters .chip').forEach((chip, _, all) => chip.addEventListener('click', () => {
     all.forEach((c) => c.setAttribute('aria-pressed', 'false')); chip.setAttribute('aria-pressed', 'true');
