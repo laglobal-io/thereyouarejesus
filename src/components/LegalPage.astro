@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+interface Props { title: string; intro: string; updated: string; description?: string }
+const { title, intro, updated, description } = Astro.props;
+const legal = [['Terms of Use', '/terms/'], ['Privacy Policy', '/privacy/'], ['Submission Policy', '/submissions/'], ['Shipping & Returns', '/shipping-returns/'], ['Accessibility', '/accessibility/']];
+---
+<Base title={`${title} | There You Are Jesus!`} description={description || intro}>
+  <header class="page-hero"><div class="wrap"><a href="/">Home</a><h1>{title}</h1><p>{intro}</p><p class="legal-updated">Last updated {updated}</p></div></header>
+  <section style="padding-top:28px">
+    <div class="wrap legal-wrap">
+      <article class="prose legal"><slot /></article>
+      <aside class="legal-nav" aria-label="Policies">
+        <p class="votd-k">Policies</p>
+        <ul>{legal.map(([t, h]) => <li><a href={h} aria-current={Astro.url.pathname === h ? 'page' : undefined}>{t}</a></li>)}</ul>
+        <p class="radio-note">Questions about these policies? Email <a href="mailto:john@thereyouarejesus.com" style="color:inherit">john@thereyouarejesus.com</a>.</p>
+      </aside>
+    </div>
+  </section>
+</Base>

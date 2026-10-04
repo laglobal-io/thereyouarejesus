@@ -75,6 +75,7 @@ const posts = (await getPosts()).slice(0, 60);
 
         <label class="choice" style="margin-bottom:24px"><input type="checkbox" id="f-sub" name="subscribe" value="yes"> Email me new posts from ThereYouAreJesus</label>
         <button class="btn btn-gold" type="submit" id="send-btn">Send to John</button>
+        <p class="radio-note" style="margin-top:14px">By sending, you agree to our <a href="/submissions/" style="color:inherit">Submission Policy</a>. See how we protect your information in our <a href="/privacy/" style="color:inherit">Privacy Policy</a>.</p>
         <p class="form-msg" id="send-error" aria-live="assertive" style="margin-top:12px"></p>
       </form>
 

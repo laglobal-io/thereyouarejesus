@@ -19,5 +19,5 @@ const { topic, email, kinds, kindLabel, button, deadline = false } = Astro.props
   <div class="hp" aria-hidden="true"><label>Leave this empty<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
   <button class="btn btn-gold" type="submit">{button}</button>
   <p class="form-msg" aria-live="polite" style="margin-top:12px"></p>
-  <p class="radio-note">Prefer email? Write to <a href={`mailto:${email}`} style="color:inherit">{email}</a>.</p>
+  <p class="radio-note">By sending, you agree to our <a href="/privacy/" style="color:inherit">Privacy Policy</a>. Prefer email? Write to <a href={`mailto:${email}`} style="color:inherit">{email}</a>.</p>
 </form>

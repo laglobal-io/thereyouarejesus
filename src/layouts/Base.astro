@@ -4,6 +4,7 @@ import { ClientRouter } from 'astro:transitions';
 import { getSettings, getCategories } from '../lib/wp';
 import { socials, env } from '../data/defaults';
 import { PRODUCTS } from '../data/store';
+import SubscribeForm from '../components/SubscribeForm.astro';
 import { productImages } from '../lib/store-images';
 const catalog = PRODUCTS.map((p) => ({ id: p.id, name: p.name, price: p.price, options: p.options || null, digital: !!p.digital, img: productImages(p.id)[0] || '', art: p.art }));
 
@@ -103,26 +104,62 @@ const year = new Date().getFullYear();
 
   <footer class="site-foot">
     <div class="wrap">
-      <div class="foot-row">
-        <div>
-          {settings.logo && <span class="logo-mark foot-logo" style={`background-image:url('${settings.logo}')`} aria-hidden="true"></span>}
-          <p class="foot-brand">There You Are Jesus!</p>
-          <p style="margin:0">Modern day evidence of two-way communication with God.</p>
-          <p style="margin:6px 0 0"><a href="/share/" style="color:#D4DAF2">Contact</a>, or email <a href="mailto:john@thereyouarejesus.com" style="color:#D4DAF2">john@thereyouarejesus.com</a></p>
+      <div class="foot-grid">
+        <div class="foot-about">
+          <a class="foot-brand" href="/">
+            {settings.logo && <span class="logo-mark foot-logo" style={`background-image:url('${settings.logo}')`} aria-hidden="true"></span>}
+            <span>There You Are Jesus<span style="color:var(--gold)">!</span></span>
+          </a>
+          <p class="foot-tag">Modern day evidence of two-way communication with God, and the Seven Spirits John was shown before the Throne.</p>
+          <p class="foot-k">Get new posts by email</p>
+          <SubscribeForm id="foot-form" />
+          <ul class="foot-social" aria-label="Follow ThereYouAreJesus">
+            {socials.map((s) => <li><a href={s.url} rel="noopener">{s.name}</a></li>)}
+            <li><a href="/feed.xml">RSS</a></li>
+          </ul>
         </div>
-        <ul class="socials foot-links" aria-label="More">
-          <li><a href="/partnerships/">Partnerships</a></li>
-          <li><a href="/press/">Press</a></li>
-          <li><a href="/licensing/">Licensing</a></li>
-          <li><a href="/store/">Store</a></li>
-          <li><a href="/podcasts/">Podcasts</a></li>
-        </ul>
-        <ul class="socials" aria-label="Social media">
-          {socials.map((s) => <li><a href={s.url}>{s.name}</a></li>)}
-          <li><a href="/feed.xml">RSS</a></li>
+        <nav class="foot-cols" aria-label="Footer">
+          <div>
+            <p class="foot-k">Explore</p>
+            <ul>
+              <li><a href="/#testimony">John's account</a></li>
+              <li><a href="/#spirits">The Seven Spirits</a></li>
+              {menus.evidence.map(([t, h]) => <li><a href={h}>{t}</a></li>)}
+            </ul>
+          </div>
+          <div>
+            <p class="foot-k">Study and listen</p>
+            <ul>
+              <li><a href="/bible/">The Bible</a></li>
+              <li><a href="/#listen">There You Are Jesus podcast</a></li>
+              {menus.listen.map(([t, h]) => <li><a href={h}>{t}</a></li>)}
+            </ul>
+            <p class="foot-k" style="margin-top:22px">Get involved</p>
+            <ul>
+              <li><a href="/#join">Membership</a></li>
+              <li><a href="/store/">Store</a></li>
+              <li><a href={env.donate}>Donate</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot-k">Contact</p>
+            <ul>
+              {menus.contact.map(([t, h]) => <li><a href={h}>{t}</a></li>)}
+              <li><a href="mailto:john@thereyouarejesus.com">Email John</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      <div class="foot-bottom">
+        <p>© {year} There You Are Jesus LLC. All rights reserved. Made from God's love.</p>
+        <ul class="foot-legal" aria-label="Policies">
+          <li><a href="/terms/">Terms of Use</a></li>
+          <li><a href="/privacy/">Privacy</a></li>
+          <li><a href="/submissions/">Submission Policy</a></li>
+          <li><a href="/shipping-returns/">Shipping &amp; Returns</a></li>
+          <li><a href="/accessibility/">Accessibility</a></li>
         </ul>
       </div>
-      <div class="copy">© {year} There You Are Jesus LLC. All rights reserved. Made from God's love.</div>
     </div>
   </footer>
 
@@ -135,7 +172,7 @@ const year = new Date().getFullYear();
       <ul class="cart-items" id="cart-items"></ul>
       <div class="cart-foot" id="cart-foot">
         <p class="cart-sub"><span>Subtotal</span><strong id="cart-subtotal">$0</strong></p>
-        <p class="radio-note" style="margin:0 0 14px">Shipping and any tax are added at checkout. Members can enter their code there.</p>
+        <p class="radio-note" style="margin:0 0 14px">Shipping and any tax are added at checkout. Members can enter their code there. See <a href="/shipping-returns/" style="color:inherit">Shipping &amp; Returns</a>.</p>
         <button class="btn btn-gold" type="button" id="cart-checkout" style="width:100%">Check out</button>
         <p class="form-msg" id="cart-msg" aria-live="polite"></p>
       </div>

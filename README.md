@@ -96,7 +96,11 @@ Products, prices, sizes and descriptions live in `src/data/store.ts`. Photos go 
 
 Fulfillment: physical orders arrive by email with the shipping address. Place them with your print-on-demand provider (such as Printful) or ship them yourself. Until `STRIPE_SECRET_KEY` is set, the checkout button says the store opens soon.
 
-## 8. Go live (cutover)
+## 8. Policies
+
+Terms of Use (/terms), Privacy Policy (/privacy), Submission Policy (/submissions), Shipping & Returns (/shipping-returns) and Accessibility (/accessibility) are linked in the footer and next to forms, the cart and memberships. They're plain-language drafts written for how this site actually works; have an attorney review them before launch, and update them if you add services (for example analytics). The Privacy Policy lists privacy@thereyouarejesus.com and the Terms list licensing@ for copyright notices, so make sure those inboxes exist.
+
+## 9. Go live (cutover)
 
 Do this at a quiet time, with WordPress backed up. If your host offers support, ask them to help with steps 1 and 2.
 
