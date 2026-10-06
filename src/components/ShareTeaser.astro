@@ -1,19 +1,53 @@
 ---
 import { topics, env } from '../data/defaults';
+// Simple stroke icons for each topic
+const icons: Record<string, string> = {
+  question: '<path d="M9.2 9a3 3 0 1 1 4.3 2.7c-.9.4-1.5 1.1-1.5 2.1V15"/><circle cx="12" cy="18.5" r=".6" fill="currentColor"/><circle cx="12" cy="12" r="9.5"/>',
+  story: '<path d="M12 21s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.8C19.5 16.4 12 21 12 21z"/>',
+  guest: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
+  prayer: '<path d="M12 3v18M7 8h10"/>',
+  feedback: '<path d="M4 5h16v11H9l-5 4z"/>',
+};
 ---
 <section id="share-teaser" aria-labelledby="sh-title">
   <div class="wrap share-grid">
     <div>
       <h2 class="sec-title" id="sh-title">Share your thoughts with John</h2>
-      <p class="lede">Ask a question, tell us about your own experience, or send a prayer request. Choose a topic to get started.</p>
-      <ul class="topics">
-        {topics.map((t) => <li><a href={`/share/?topic=${t.key}`}><strong>{t.name}</strong><span>{t.sub}</span><em>Start</em></a></li>)}
-      </ul>
+      <p class="lede">A question, your own experience, a prayer request: every message reaches John. Start here, it only takes a minute.</p>
+
+      <form class="quick-share" id="quick-share" action="/share/" method="get">
+        <fieldset>
+          <legend>What would you like to share?</legend>
+          <div class="qs-topics">
+            {topics.map((t, i) => (
+              <label class="qs-topic">
+                <input type="radio" name="topic" value={t.key} checked={i === 0} />
+                <span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" set:html={icons[t.key]}></svg>{t.name}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <label class="qs-label" for="qs-msg" id="qs-label">Your question</label>
+        <textarea id="qs-msg" name="draft" rows="4" placeholder="Start typing here…"></textarea>
+        <p class="qs-note" id="qs-note">You'll add your name and email on the next step.</p>
+        <div class="qs-actions">
+          <button class="btn btn-gold" type="submit">Continue</button>
+          <a class="text-link" href="mailto:john@thereyouarejesus.com">Or email John directly</a>
+        </div>
+      </form>
     </div>
-    <aside class="panel timeline-panel" aria-label="Donate">
-      <h3>Support this message</h3>
-      <p>Your gift keeps the Seven Spirits message online, the podcast recording, and new evidence reaching more people.</p>
-      <a class="btn btn-gold" href={env.donate}>Donate</a>
+    <aside class="share-side">
+      <div class="panel">
+        <h3>Your story matters</h3>
+        <p>You choose whether we share it: with your first name, anonymously, or not at all. Prayer requests always stay private.</p>
+        <a class="text-link" href="/submissions/">How we handle what you share</a>
+      </div>
+      <div class="panel timeline-panel">
+        <h3>Support this message</h3>
+        <p>Your gift keeps the Seven Spirits message online, the podcast recording, and new evidence reaching more people.</p>
+        <a class="btn btn-gold" href={env.donate}>Donate</a>
+      </div>
     </aside>
   </div>
+  <script type="application/json" id="qs-topics-data" set:html={JSON.stringify(topics.map((t) => ({ key: t.key, label: t.label, help: t.help })))}></script>
 </section>

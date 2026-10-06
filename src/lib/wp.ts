@@ -161,6 +161,16 @@ export function getSettings(): Promise<SiteSettings> {
   return settingsCache;
 }
 
+// Category image: a file in public/categories or one chosen in WordPress wins;
+// otherwise the featured image of the newest post in that category (or its sub-series) is used.
+export function withPostImages(cats: Category[], posts: Post[]): Category[] {
+  return cats.map((c) => {
+    if (c.image) return c;
+    const p = posts.find((x) => x.image && x.catSlugs.includes(c.slug));
+    return p?.image ? { ...c, image: p.image.url } : c;
+  });
+}
+
 export const EVIDENCE = ['eyewitness-afterlife', 'numbers', 'everyday-things', 'nature'] as const;
 const TINT: Record<string, Post['tint']> = {
   'eyewitness-afterlife': 'eyewitness', numbers: 'numbers', 'everyday-things': 'everyday', nature: 'nature',

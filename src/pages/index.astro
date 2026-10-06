@@ -11,9 +11,10 @@ import Store from '../components/Store.astro';
 import Podcast from '../components/Podcast.astro';
 import Radio from '../components/Radio.astro';
 import ShareTeaser from '../components/ShareTeaser.astro';
-import { getSettings, getCategories, getPosts } from '../lib/wp';
+import { getSettings, getCategories, getPosts, withPostImages } from '../lib/wp';
 
-const [settings, cats, posts] = await Promise.all([getSettings(), getCategories(), getPosts()]);
+const [settings, rawCats, posts] = await Promise.all([getSettings(), getCategories(), getPosts()]);
+const cats = withPostImages(rawCats, posts);
 const eye = cats.find((c) => c.slug === 'eyewitness-afterlife');
 ---
 <Base>

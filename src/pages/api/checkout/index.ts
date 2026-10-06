@@ -39,9 +39,12 @@ export const POST: APIRoute = async ({ request, url }) => {
   if (lines.some((l) => !l.p.digital)) {
     const countries = (import.meta.env.STORE_SHIP_COUNTRIES || 'US,CA,GB,AU,NZ,IE').split(',').map((c: string) => c.trim().toUpperCase()).filter(Boolean);
     countries.forEach((c: string, i: number) => f.set(`shipping_address_collection[allowed_countries][${i}]`, c));
+    const physical = lines.filter((l) => !l.p.digital).reduce((n, l) => n + priceOf(l.p, l.option) * l.qty, 0);
+    const freeOver = Number(import.meta.env.PUBLIC_FREE_SHIPPING_CENTS || 5000);
+    const free = freeOver > 0 && physical >= freeOver;
     f.set('shipping_options[0][shipping_rate_data][type]', 'fixed_amount');
-    f.set('shipping_options[0][shipping_rate_data][display_name]', 'Standard shipping');
-    f.set('shipping_options[0][shipping_rate_data][fixed_amount][amount]', String(import.meta.env.STORE_SHIPPING_CENTS || 695));
+    f.set('shipping_options[0][shipping_rate_data][display_name]', free ? 'Free shipping' : 'Standard shipping');
+    f.set('shipping_options[0][shipping_rate_data][fixed_amount][amount]', free ? '0' : String(import.meta.env.STORE_SHIPPING_CENTS || 695));
     f.set('shipping_options[0][shipping_rate_data][fixed_amount][currency]', 'usd');
     f.set('phone_number_collection[enabled]', 'true');
   }

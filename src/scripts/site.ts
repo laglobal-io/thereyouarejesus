@@ -224,6 +224,11 @@ function syncButton(b: HTMLElement, id: string, name: string) {
 }
 
 // ---------- Page features ----------
+function initNotice() {
+  const n = $('site-notice');
+  $('notice-close')?.addEventListener('click', () => { if (n) n.hidden = true; try { localStorage.setItem('tyaj-notice-dismissed', '1'); } catch { /* private mode */ } });
+}
+
 function initMenu() {
   const menuBtn = document.querySelector<HTMLButtonElement>('.menu-btn');
   const nav = $('nav');
@@ -980,6 +985,14 @@ function renderCart() {
     list.appendChild(li); void i;
   });
   $('cart-subtotal')!.textContent = money(sub);
+  // Free shipping goal (physical items only)
+  const goal = Number($('cart')?.dataset.free || 0), goalEl = $('ship-goal');
+  const physical = lines.reduce((n, l) => { const c = cat.find((x) => x.id === l.id)!; return c.digital ? n : n + linePrice(c, l.option) * l.qty; }, 0);
+  if (goalEl) {
+    goalEl.hidden = !goal || physical === 0;
+    $('ship-goal-text')!.textContent = physical >= goal ? 'You’ve earned free shipping.' : `Add ${money(goal - physical)} more for free shipping.`;
+    ($('ship-goal-bar') as HTMLElement).style.width = `${Math.min(100, (physical / goal) * 100)}%`;
+  }
 }
 function openCart() { const c = $('cart'); if (!c) return; renderCart(); c.hidden = false; $('cart-close')?.focus(); }
 function closeCart() { const c = $('cart'); if (c) c.hidden = true; }
@@ -1053,6 +1066,29 @@ function initStorePages() {
   }
 }
 
+
+// Homepage quick share: pick a topic, start writing, continue to the full form with it carried over
+function initQuickShare() {
+  const form = $<HTMLFormElement>('quick-share');
+  if (!form) return;
+  const info = readJSON<{ key: string; label: string; help: string }[]>('qs-topics-data', []);
+  const msg = $<HTMLTextAreaElement>('qs-msg')!, label = $('qs-label')!, note = $('qs-note')!;
+  const sync = () => {
+    const k = form.querySelector<HTMLInputElement>('input[name="topic"]:checked')?.value || 'question';
+    const t = info.find((x) => x.key === k);
+    label.textContent = t?.label || 'Your message';
+    note.textContent = k === 'prayer' ? 'Prayer requests are always kept private. You\u2019ll add your name and email on the next step.' : 'You\u2019ll add your name and email on the next step.';
+  };
+  form.querySelectorAll('input[name="topic"]').forEach((r) => r.addEventListener('change', sync));
+  sync();
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const k = form.querySelector<HTMLInputElement>('input[name="topic"]:checked')?.value || 'question';
+    try { sessionStorage.setItem('tyaj-share-draft', JSON.stringify({ topic: k, message: msg.value })); } catch { /* private mode */ }
+    location.href = `/share/?topic=${encodeURIComponent(k)}`;
+  });
+}
+
 function initShare() {
   // ---------- Share your thoughts ----------
   const shareForm = $<HTMLFormElement>('share-form');
@@ -1073,6 +1109,11 @@ function initShare() {
     }
     radios.forEach((r) => r.addEventListener('change', () => setTopic(r.value)));
     if (params.get('topic')) setTopic(params.get('topic')!);
+    try {
+      const draft = JSON.parse(sessionStorage.getItem('tyaj-share-draft') || 'null');
+      if (draft?.message) { const ta = $<HTMLTextAreaElement>('f-msg'); if (ta && !ta.value) ta.value = draft.message; }
+      sessionStorage.removeItem('tyaj-share-draft');
+    } catch { /* nothing to carry over */ }
     const postParam = params.get('post');
     if (postParam) { const sel = $<HTMLSelectElement>('f-post'); if (sel) sel.value = postParam; }
 
@@ -1129,7 +1170,7 @@ window.addEventListener('scroll', updateProgress, { passive: true });
 
 function initPage() {
   pageSyncs = [];
-  for (const f of [initMenu, initSpirits, initPosts, initKit, initPodcast, initFeaturedRadio, initRadioDir, initPodDir, initVotdHome, initBibleApp, initInquiry, initCart, initStorePages, initShare, initPostPage]) {
+  for (const f of [initNotice, initMenu, initSpirits, initPosts, initKit, initPodcast, initFeaturedRadio, initRadioDir, initPodDir, initVotdHome, initBibleApp, initInquiry, initQuickShare, initCart, initStorePages, initShare, initPostPage]) {
     try { f(); } catch (e) { console.error('[tyaj]', f.name, e); }
   }
 }

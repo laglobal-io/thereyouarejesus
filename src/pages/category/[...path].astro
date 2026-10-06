@@ -1,10 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro';
 import PostItem from '../../components/PostItem.astro';
-import { getCategories, getPosts, ancestorsOf, type Category, type Post } from '../../lib/wp';
+import { getCategories, getPosts, ancestorsOf, withPostImages, type Category, type Post } from '../../lib/wp';
 
 export async function getStaticPaths() {
-  const [cats, posts] = await Promise.all([getCategories(), getPosts()]);
+  const [rawCats, posts] = await Promise.all([getCategories(), getPosts()]);
+  const cats = withPostImages(rawCats, posts);
   return Promise.all(cats
     .filter((c) => c.path.startsWith('/category/'))
     .map(async (c) => ({

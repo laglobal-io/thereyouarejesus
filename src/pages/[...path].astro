@@ -2,6 +2,9 @@
 // Every WordPress post and page, at the same web address it has today.
 import Base from '../layouts/Base.astro';
 import PostItem from '../components/PostItem.astro';
+import ProductArt from '../components/ProductArt.astro';
+import { PRODUCTS, fromPrice } from '../data/store';
+import { productImages } from '../lib/store-images';
 import { getPosts, getPages, stripTags, type Post, type Page } from '../lib/wp';
 
 export async function getStaticPaths() {
@@ -64,6 +67,12 @@ const t = encodeURIComponent(post?.title || ''), u = encodeURIComponent(url);
               <a class="btn btn-gold" href="/#join">Subscribe</a>
             </div>
           </div>
+          <section class="post-store" aria-labelledby="ps-title" style="padding:26px">
+            <div class="head"><h2 id="ps-title">From the store</h2><a class="text-link" href="/store/">Shop all</a></div>
+            <div class="store-grid">
+              {PRODUCTS.slice(0, 3).map((p) => <a class="product" href={`/store/${p.id}/`}><ProductArt art={p.art} img={productImages(p.id)[0]} alt={p.name} /><div class="kind">{p.kind}</div><h3>{p.name}</h3><div class="p">{fromPrice(p)}</div></a>)}
+            </div>
+          </section>
           <nav class="pn" aria-label="More posts">
             {newer ? <a class="prev" href={newer.path}><small>Newer post</small><strong>{newer.title}</strong></a> : <span></span>}
             {older && <a class="next" href={older.path}><small>Older post</small><strong>{older.title}</strong></a>}

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ThereYouAreJesus Site Connector
  * Description: Connects WordPress to the new ThereYouAreJesus.com site: Site Settings, category images, a Messages inbox for Share Your Thoughts, and automatic site rebuilds when John publishes.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: ThereYouAreJesus
  * Requires PHP: 7.4
  */
@@ -419,6 +419,9 @@ add_action('update_option_' . TYAJ_OPT, function () { tyaj_trigger_deploy(true);
 
 add_action('template_redirect', function () {
 	if (is_admin() || wp_doing_ajax() || is_preview() || (defined('REST_REQUEST') && REST_REQUEST) || is_user_logged_in()) { return; }
+	// "Visit the previous version" link on the new site: let the visitor browse the classic site for 30 days.
+	if (isset($_GET['classic'])) { setcookie('tyaj_classic', '1', time() + 30 * DAY_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true); return; }
+	if (!empty($_COOKIE['tyaj_classic'])) { return; }
 	$s = tyaj_get();
 	if (empty($s['public_url'])) { return; }
 	$target = wp_parse_url($s['public_url'], PHP_URL_HOST);

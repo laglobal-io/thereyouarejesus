@@ -22,7 +22,7 @@ const menus = {
     ['Everyday Things', catPath('everyday-things')], ['Nature', catPath('nature')],
     ['Timeline of discovery', '/timeline-of-discovery-on-thereyouarejesus/'],
   ],
-  listen: [['Christian Podcasts', '/podcasts/'], ['Live Christian Radio', '/radio/']],
+  listen: [['There You Are Jesus Podcast', '/podcasts/#listen'], ['Christian Podcasts', '/podcasts/#discover'], ['Live Christian Radio', '/radio/']],
   contact: [
     ['Get In Touch', '/share/'], ['Share Your Testimony', '/share/?topic=story'],
     ['Press', '/press/'], ['Partnerships', '/partnerships/'], ['Licensing', '/licensing/'],
@@ -31,6 +31,7 @@ const menus = {
 const chevron = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 const year = new Date().getFullYear();
+const classicUrl = import.meta.env.PUBLIC_CLASSIC_URL || 'https://cms.thereyouarejesus.com/?classic=1';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -58,6 +59,11 @@ const year = new Date().getFullYear();
   <div class="nebula" aria-hidden="true" transition:persist="nebula"></div>
   <canvas id="sky" aria-hidden="true" transition:persist="sky"></canvas>
   <a class="skip" href="#main">Skip to content</a>
+  <div class="site-notice" id="site-notice" role="region" aria-label="Site announcement">
+    <p>Welcome to our new website. Looking for the old one? <a href={classicUrl}>Visit the previous version</a></p>
+    <button type="button" id="notice-close" aria-label="Dismiss this message"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
+  <script is:inline>try{if(localStorage.getItem('tyaj-notice-dismissed')==='1')document.getElementById('site-notice').hidden=true}catch(e){}</script>
 
   <header class="site-head">
     <div class="wrap head-row">
@@ -73,7 +79,7 @@ const year = new Date().getFullYear();
         <button class="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
       </div>
       <nav class="nav" id="nav" aria-label="Main">
-        <a href="/#testimony">John's account</a>
+        <a href="/#testimony">John's Story</a>
         <div class="nav-group">
           <a class="nav-parent" href="/#evidence">Evidence</a>
           <button class="nav-caret" type="button" aria-expanded="false" aria-controls="sub-evidence" aria-label="Evidence types" set:html={chevron}></button>
@@ -122,7 +128,7 @@ const year = new Date().getFullYear();
           <div>
             <p class="foot-k">Explore</p>
             <ul>
-              <li><a href="/#testimony">John's account</a></li>
+              <li><a href="/#testimony">John's Story</a></li>
               <li><a href="/#spirits">The Seven Spirits</a></li>
               {menus.evidence.map(([t, h]) => <li><a href={h}>{t}</a></li>)}
             </ul>
@@ -131,7 +137,6 @@ const year = new Date().getFullYear();
             <p class="foot-k">Study and listen</p>
             <ul>
               <li><a href="/bible/">The Bible</a></li>
-              <li><a href="/#listen">There You Are Jesus podcast</a></li>
               {menus.listen.map(([t, h]) => <li><a href={h}>{t}</a></li>)}
             </ul>
             <p class="foot-k" style="margin-top:22px">Get involved</p>
@@ -165,12 +170,13 @@ const year = new Date().getFullYear();
 
 
   <!-- Cart -->
-  <div class="cart" id="cart" hidden>
+  <div class="cart" id="cart" hidden data-free={import.meta.env.PUBLIC_FREE_SHIPPING_CENTS || 5000}>
     <div class="cart-shade" id="cart-shade"></div>
     <div class="cart-panel" role="dialog" aria-modal="true" aria-labelledby="cart-title">
       <div class="cart-top"><h2 id="cart-title">Your cart</h2><button class="dock-close" type="button" id="cart-close" aria-label="Close cart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
       <ul class="cart-items" id="cart-items"></ul>
       <div class="cart-foot" id="cart-foot">
+        <div class="ship-goal" id="ship-goal"><p id="ship-goal-text"></p><span class="bar"><i id="ship-goal-bar"></i></span></div>
         <p class="cart-sub"><span>Subtotal</span><strong id="cart-subtotal">$0</strong></p>
         <p class="radio-note" style="margin:0 0 14px">Shipping and any tax are added at checkout. Members can enter their code there. See <a href="/shipping-returns/" style="color:inherit">Shipping &amp; Returns</a>.</p>
         <button class="btn btn-gold" type="button" id="cart-checkout" style="width:100%">Check out</button>

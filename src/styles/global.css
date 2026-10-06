@@ -816,3 +816,54 @@ body:has(#verse-sheet:not([hidden])) .dock{display:none}
 .legal-nav a{color:#C9D1EE;text-decoration:none}
 .legal-nav a[aria-current="page"]{color:var(--gold);font-weight:600}
 @media (max-width:900px){.legal-nav{position:static}}
+
+/* New-site notice */
+.site-notice{position:relative;z-index:55;display:flex;align-items:center;justify-content:center;gap:12px;padding:9px 52px 9px 16px;background:#F5B942;color:#0A0F2C;font-size:.92rem;text-align:center}
+.site-notice[hidden]{display:none}
+.site-notice p{margin:0}
+.site-notice a{color:#0A0F2C;font-weight:700;text-underline-offset:3px}
+.site-notice button{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:50%;background:none;color:#0A0F2C;cursor:pointer;display:grid;place-items:center}
+.site-notice button:hover{background:rgba(10,15,44,.1)}
+.site-notice svg{width:16px;height:16px}
+
+/* Our own content, highlighted */
+.own-show .podcast{padding-top:40px}
+.own-promo{display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center;padding:20px 24px;margin:8px 0 26px;border-radius:20px;text-decoration:none;color:var(--ink);
+  background:radial-gradient(ellipse 60% 90% at 0% 50%,rgba(245,185,66,.18),transparent 70%),rgba(9,13,40,.9);border:1px solid rgba(245,185,66,.35)}
+.own-promo:hover strong{text-decoration:underline;text-underline-offset:4px}
+.own-art{width:84px;height:84px;border-radius:14px;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding-bottom:14px;background:#1E2A6B}
+.own-art i{display:block;width:5px;border-radius:50% 50% 2px 2px/8px 8px 2px 2px;background:linear-gradient(0deg,#FFF4D6,#F5B942 70%,#E0662F)}
+.own-k{display:block;font-size:.85rem;font-weight:700;color:var(--gold)}
+.own-promo strong{display:block;font-family:var(--display);font-weight:400;font-size:1.45rem;margin:2px 0}
+.own-d{display:block;color:var(--muted);font-size:.95rem}
+@media (max-width:640px){.own-promo{grid-template-columns:auto 1fr}.own-promo .btn{grid-column:1 / -1;text-align:center}}
+
+/* Quick share (homepage) */
+.quick-share{margin-top:26px;padding:clamp(20px,3vw,30px);border-radius:20px;background:rgba(9,13,40,.88);border:1px solid var(--line)}
+.quick-share fieldset{border:0;padding:0;margin:0 0 20px}
+.quick-share legend{font-family:var(--display);font-size:1.4rem;margin-bottom:14px;padding:0}
+.qs-topics{display:flex;flex-wrap:wrap;gap:10px}
+.qs-topic{position:relative}
+.qs-topic input{position:absolute;opacity:0;inset:0;pointer-events:none}
+.qs-topic span{display:inline-flex;align-items:center;gap:9px;padding:11px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(4,6,26,.6);cursor:pointer;font-size:.95rem;min-height:44px;box-sizing:border-box}
+.qs-topic svg{width:19px;height:19px;color:var(--gold)}
+.qs-topic input:checked + span{border-color:var(--gold);background:rgba(245,185,66,.14);box-shadow:0 0 0 1px var(--gold) inset}
+.qs-topic input:focus-visible + span{outline:2px solid var(--gold);outline-offset:3px}
+.qs-label{display:block;font-weight:600;margin-bottom:8px}
+.quick-share textarea{width:100%;box-sizing:border-box;font:400 1.02rem/1.6 var(--sans);padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(4,6,26,.7);color:var(--ink);resize:vertical;min-height:120px}
+.qs-note{margin:8px 0 18px;color:var(--muted);font-size:.9rem}
+.qs-actions{display:flex;flex-wrap:wrap;align-items:center;gap:18px}
+.share-side{display:flex;flex-direction:column;gap:18px}
+
+.ship-goal{margin:4px 0 6px}
+.ship-goal[hidden]{display:none}
+.ship-goal p{margin:0 0 6px;font-size:.92rem;color:var(--ink)}
+.ship-goal .bar{display:block;height:6px;border-radius:999px;background:rgba(157,176,230,.18);overflow:hidden}
+.ship-goal i{display:block;height:100%;width:0;background:linear-gradient(90deg,#E0662F,#F5B942);border-radius:999px;transition:width .3s}
+.post-store{margin:0 0 56px;padding:26px;border-radius:20px;background:rgba(9,13,40,.85);border:1px solid var(--line)}
+.post-store .head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.post-store h2{font-family:var(--display);font-weight:400;font-size:1.6rem;margin:0}
+.post-store .store-grid{margin-top:0;grid-template-columns:repeat(3,1fr);gap:16px}
+.post-store .product h3{font-size:1.05rem}
+.post-store .art,.post-store .prod-img{margin-bottom:10px}
+@media (max-width:640px){.post-store .store-grid{grid-template-columns:1fr 1fr}.post-store .store-grid > :nth-child(3){display:none}}
